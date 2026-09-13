@@ -304,7 +304,7 @@ namespace warp
       headersToUse.emplace(API_TOKEN_NAME, userToken);
 
       auto res = Get(BuildApiPath(std::format("{}/{}", API_LIBRARY_DATA, ratingKey)), headersToUse);
-      if (!IsHttpSuccess(__func__, res))
+      if (!IsHttpSuccess(__func__, res, false)) // Turn off logging it is expected to miss for some paths that are not in the library
          return std::nullopt;
 
       JsonPlexResponse<JsonPlexMetadataContainer> serverResponse;
