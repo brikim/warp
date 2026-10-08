@@ -150,7 +150,7 @@ namespace warp
       return tasks;
    }
 
-   std::string_view EmbyApi::GetApiBase([[maybe_unused]] std::optional<int32_t> version) const
+   std::string_view EmbyApi::GetApiBase() const
    {
       return API_BASE;
    }

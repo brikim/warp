@@ -51,7 +51,7 @@ namespace warp
 
    JellystatApi::~JellystatApi() = default;
 
-   std::string_view JellystatApi::GetApiBase([[maybe_unused]] std::optional<int32_t> version) const
+   std::string_view JellystatApi::GetApiBase() const
    {
       return API_BASE;
    }

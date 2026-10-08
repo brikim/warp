@@ -15,9 +15,8 @@ namespace warp
 {
    namespace
    {
-      constexpr std::string_view API_V1_BASE{"/api/v1/public"};
-      constexpr std::string_view API_V2_BASE{"/api/v2/public"};
-      constexpr std::string_view API_GET_HEALTH{"/health"};
+      constexpr std::string_view API_BASE{"/api/v2/public"};
+      constexpr std::string_view API_GET_SERVERS{"/servers"};
       constexpr std::string_view API_GET_HISTORY{"/history"};
       constexpr std::string_view API_GET_USERS{"/users"};
 
@@ -99,24 +98,9 @@ namespace warp
 
    TracearrApi::~TracearrApi() = default;
 
-   std::string_view TracearrApi::GetApiBase(std::optional<int32_t> version) const
+   std::string_view TracearrApi::GetApiBase() const
    {
-      if (!version)
-      {
-         LogWarning("{} - API version not set. Defaulting to v1", __func__);
-         return API_V1_BASE;
-      }
-
-      switch (version.value())
-      {
-         case 1:
-            return API_V1_BASE;
-         case 2:
-            return API_V2_BASE;
-         default:
-            LogWarning("{} - Unknown API version: {}. Defaulting to v1", __func__, version.value());
-            return API_V1_BASE;
-      }
+      return API_BASE;
    }
 
    std::string_view TracearrApi::GetApiTokenName() const
@@ -127,19 +111,19 @@ namespace warp
 
    bool TracearrApi::GetValid()
    {
-      auto res = Get(BuildApiPath(API_GET_HEALTH, 1), pimpl_->headers_);
+      auto res = Get(BuildApiPath(API_GET_SERVERS), pimpl_->headers_);
       return res.error == Error::Success && res.status < VALID_HTTP_RESPONSE_MAX;
    }
 
    std::optional<std::string> TracearrApi::GetServerReportedName()
    {
-      auto res = Get(BuildApiPath(API_GET_HEALTH, 1), pimpl_->headers_);
+      auto res = Get(BuildApiPath(API_GET_SERVERS), pimpl_->headers_);
       if (!IsHttpSuccess(__func__, res))
       {
          return std::nullopt;
       }
 
-      JsonHealthResponse serverResponse;
+      JsonTracearrServers serverResponse;
       if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
       {
          LogWarning("{} - JSON Parse Error: {}",
@@ -183,7 +167,7 @@ namespace warp
          {"pageSize", "50"}
       };
 
-      auto res = Get(BuildApiParamsPath(API_GET_HISTORY, params, 2), pimpl_->headers_);
+      auto res = Get(BuildApiParamsPath(API_GET_HISTORY, params), pimpl_->headers_);
       if (!IsHttpSuccess(__func__, res))
       {
          return std::nullopt;
@@ -302,13 +286,13 @@ namespace warp
 
    void TracearrApi::TracearrApiImpl::RebuildServerMap()
    {
-      auto res = parent_.Get(parent_.BuildApiPath(API_GET_HEALTH, 1), headers_);
+      auto res = parent_.Get(parent_.BuildApiPath(API_GET_SERVERS), headers_);
       if (!parent_.IsHttpSuccess(__func__, res))
       {
          return;
       }
 
-      JsonHealthResponse serverResponse;
+      JsonTracearrServers serverResponse;
       if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
       {
          parent_.LogWarning("{} - JSON Parse Error: {}",
@@ -337,7 +321,7 @@ namespace warp
 
    void TracearrApi::TracearrApiImpl::RebuildUsersMap()
    {
-      auto res = parent_.Get(parent_.BuildApiPath(API_GET_USERS, 2), headers_);
+      auto res = parent_.Get(parent_.BuildApiPath(API_GET_USERS), headers_);
       if (!parent_.IsHttpSuccess(__func__, res))
       {
          return;

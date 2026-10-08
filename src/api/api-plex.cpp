@@ -207,7 +207,7 @@ namespace warp
       return tasks;
    }
 
-   std::string_view PlexApi::GetApiBase([[maybe_unused]] std::optional<int32_t> version) const
+   std::string_view PlexApi::GetApiBase() const
    {
       return API_BASE;
    }

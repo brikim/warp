@@ -7,36 +7,34 @@
 
 namespace warp
 {
-   struct JsonHealthServers
+   struct JsonTracearrServer
    {
       std::string id;
       std::string name;
       std::string type;
+      std::string version;
 
       struct glaze
       {
          static constexpr auto value = glz::object(
-            "id", &JsonHealthServers::id,
-            "name", &JsonHealthServers::name,
-            "type", &JsonHealthServers::type
+            "server_id", &JsonTracearrServer::id,
+            "server_name", &JsonTracearrServer::name,
+            "server_type", &JsonTracearrServer::type,
+            "version", &JsonTracearrServer::version
          );
       };
    };
 
-   struct JsonHealthResponse
+   struct JsonTracearrServers
    {
-      std::string status;
       std::string version;
-      std::string timestamp;
-      std::vector<JsonHealthServers> servers;
+      std::vector<JsonTracearrServer> servers;
 
       struct glaze
       {
          static constexpr auto value = glz::object(
-            "status", &JsonHealthResponse::status,
-            "version", &JsonHealthResponse::version,
-            "timestamp", &JsonHealthResponse::timestamp,
-            "servers", &JsonHealthResponse::servers
+            "tracearr_version", &JsonTracearrServers::version,
+            "data", &JsonTracearrServers::servers
          );
       };
    };

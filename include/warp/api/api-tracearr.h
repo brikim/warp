@@ -42,7 +42,7 @@ namespace warp
       [[nodiscard]] std::optional<TracearrUser> GetUser(std::string_view id);
 
    protected:
-      std::string_view GetApiBase(std::optional<int32_t> version) const override;
+      std::string_view GetApiBase() const override;
       std::string_view GetApiTokenName() const override;
 
    private:

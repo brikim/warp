@@ -134,18 +134,18 @@ namespace warp
       }
    }
 
-   std::string ApiBase::BuildApiPath(std::string_view path, std::optional<int32_t> version) const
+   std::string ApiBase::BuildApiPath(std::string_view path) const
    {
       auto apiTokenName = GetApiTokenName();
       char separator = (path.find('?') == std::string_view::npos) ? '?' : '&';
       if (apiTokenName.empty())
       {
-         return std::format("{}{}", GetApiBase(version), path);
+         return std::format("{}{}", GetApiBase(), path);
       }
       else
       {
          return std::format("{}{}{}{}={}",
-                            GetApiBase(version),
+                            GetApiBase(),
                             path,
                             separator,
                             apiTokenName,
@@ -153,9 +153,9 @@ namespace warp
       }
    }
 
-   std::string ApiBase::BuildApiParamsPath(std::string_view path, const ApiParams& params, std::optional<int32_t> version) const
+   std::string ApiBase::BuildApiParamsPath(std::string_view path, const ApiParams& params) const
    {
-      auto apiPath = BuildApiPath(path, version);
+      auto apiPath = BuildApiPath(path);
       AddApiParam(apiPath, params);
       return apiPath;
    }
