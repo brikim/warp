@@ -1,8 +1,8 @@
 #pragma once
 
-#include "warp/api/api-response.h"
 #include "warp/api/api-types.h"
 #include "warp/base.h"
+#include "warp/http/http-client.h"
 #include "warp/types.h"
 
 #include <memory>
@@ -13,8 +13,6 @@
 
 namespace warp
 {
-   using ApiParams = std::vector<std::pair<std::string_view, std::string_view>>;
-
    class ApiBase : public Base
    {
    public:
@@ -26,10 +24,10 @@ namespace warp
 
       virtual void Shutdown();
 
-      [[nodiscard]] const std::string& GetName() const;
-      [[nodiscard]] const std::string& GetPrettyName() const;
-      [[nodiscard]] const std::string& GetUrl() const;
-      [[nodiscard]] const std::string& GetApiKey() const;
+      [[nodiscard]] std::string_view GetName() const;
+      [[nodiscard]] std::string_view GetPrettyName() const;
+      [[nodiscard]] std::string_view GetApiKey() const;
+      [[nodiscard]] std::string_view GetUrl() const;
 
       [[nodiscard]] virtual bool GetValid() = 0;
       [[nodiscard]] virtual std::optional<std::string> GetServerReportedName() = 0;
@@ -46,9 +44,8 @@ namespace warp
       [[nodiscard]] Response Post(const std::string& path, const Headers& headers, const std::string& body, const std::string& contentType);
       [[nodiscard]] Response Delete(const std::string& path, const Headers& headers);
 
-      void AddApiParam(std::string& url, const ApiParams& params) const;
       [[nodiscard]] std::string BuildApiPath(std::string_view path) const;
-      [[nodiscard]] std::string BuildApiParamsPath(std::string_view path, const ApiParams& params) const;
+      [[nodiscard]] std::string BuildApiParamsPath(std::string_view path, const HttpParams& params) const;
 
       // Returns if the http request was successful and outputs to the log if not successful
       bool IsHttpSuccess(std::string_view name, const Response& response, bool log = true);

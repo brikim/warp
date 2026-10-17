@@ -1,13 +1,13 @@
 #include "warp/api/api-plex.h"
 
 #include "api/api-plex-json-types.h"
-#include "api/api-utils.h"
+#include "http/http-utils.h"
+#include "warp/http/http-client.h"
 #include "warp/log/log-utils.h"
 #include "warp/types.h"
 #include "warp/utils.h"
 
 #include <glaze/glaze.hpp>
-#include <httplib.h>
 #include <pugixml.hpp>
 
 #include <algorithm>
@@ -41,8 +41,8 @@ namespace warp
    {
       std::optional<std::string> tracearrServerName_;
 
-      httplib::Client plexTvClient_;
-      httplib::Headers plexTvHeaders_;
+      HttpClient plexTvClient_;
+      Headers plexTvHeaders_;
 
       PlexApi& parent_;
       Headers headersNoToken_;
@@ -93,7 +93,7 @@ namespace warp
       void RebuildUserTokenMap();
 
       void CheckPathMap();
-      bool CheckHttpSuccess(const httplib::Result& res, std::string_view function);
+      bool CheckHttpSuccess(const warp::Response& res, std::string_view function);
 
       void UpdateCacheRequired(bool forceRefresh);
       void UpdateCacheCollections(bool forceRefresh);
@@ -114,15 +114,6 @@ namespace warp
       , parent_(p)
       , mediaPath_(serverConfig.mediaPath)
    {
-      // Setup the plex tv client
-      constexpr time_t timeoutSec{5};
-      plexTvClient_.set_connection_timeout(timeoutSec);
-
-      constexpr time_t readWritetimeoutSec{10};
-      plexTvClient_.set_read_timeout(readWritetimeoutSec);
-      plexTvClient_.set_write_timeout(readWritetimeoutSec);
-      plexTvClient_.set_keep_alive(true);
-
       // Setup the headers
       auto baseHeaders = Headers{
          // X-Plex-Client-Identifier: A stable UUID that uniquely identifies this application
@@ -136,7 +127,6 @@ namespace warp
       headersNoToken_.emplace("Accept", APPLICATION_JSON);
 
       adminHeaders_ = headersNoToken_;
-      adminHeaders_.emplace("Accept", APPLICATION_JSON);
       adminHeaders_.emplace(API_TOKEN_NAME, parent_.GetApiKey());
 
       // Copy the default headers into the httplib version
@@ -608,22 +598,14 @@ namespace warp
       return SetWatchedByUserToken(userToken, ratingKey);
    }
 
-   bool PlexApi::PlexApiImpl::CheckHttpSuccess(const httplib::Result& res, std::string_view function)
+   bool PlexApi::PlexApiImpl::CheckHttpSuccess(const warp::Response& res, std::string_view function)
    {
-      if (res.error() != httplib::Error::Success
-          || res->status >= VALID_HTTP_RESPONSE_MAX)
-      {
-         if (res->status >= VALID_HTTP_RESPONSE_MAX)
-         {
-            parent_.LogWarning("{} - HTTP Error: {} {}", function, res->status, res->reason);
-         }
-         else
-         {
-            parent_.LogWarning("{} - Connection Error: {}", function, httplib::to_string(res.error()));
-         }
-         return false;
-      }
-      return true;
+      auto errorStr = plexTvClient_.GetHttpResponseStr(function, res);
+      if (!errorStr)
+         return true;
+
+      parent_.LogWarning("{} - HTTP error {}", function, warp::GetTag("error", *errorStr));
+      return false;
    }
 
    void PlexApi::PlexApiImpl::RebuildLibraryMap()
@@ -867,7 +849,7 @@ namespace warp
       }
 
       pugi::xml_document doc;
-      auto result = doc.load_string(res->body.c_str());
+      auto result = doc.load_string(res.body.c_str());
 
       if (!result)
       {
@@ -903,7 +885,7 @@ namespace warp
       }
 
       pugi::xml_document serverDoc;
-      auto serverResult = serverDoc.load_string(serverRes->body.c_str());
+      auto serverResult = serverDoc.load_string(serverRes.body.c_str());
       if (!serverResult)
       {
          parent_.LogWarning("{} - Could not parse {} Plex XML return", __func__, API_PLEXTV_SERVERS);
@@ -938,7 +920,7 @@ namespace warp
       }
 
       pugi::xml_document adminUserDoc;
-      auto adminUserResult = adminUserDoc.load_string(adminUserRes->body.c_str());
+      auto adminUserResult = adminUserDoc.load_string(adminUserRes.body.c_str());
       if (!adminUserResult)
       {
          parent_.LogWarning("{} - Could not parse {} Plex XML return", __func__, API_PLEXTV_ADMIN_USER);

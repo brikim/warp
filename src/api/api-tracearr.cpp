@@ -1,7 +1,7 @@
 #include "warp/api/api-tracearr.h"
 
 #include "api/api-tracearr-json-types.h"
-#include "api/api-utils.h"
+#include "http/http-utils.h"
 #include "warp/log/log-utils.h"
 #include "warp/utils.h"
 
@@ -162,7 +162,7 @@ namespace warp
    // Returns the watch history for all servers
    std::optional<TracearrHistoryItems> TracearrApi::GetWatchHistory(std::string_view dateForHistory)
    {
-      ApiParams params = {
+      HttpParams params = {
          {"since", dateForHistory},
          {"pageSize", "50"}
       };

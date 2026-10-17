@@ -1,7 +1,7 @@
 #include "warp/api/api-emby.h"
 
 #include "api/api-emby-json-types.h"
-#include "api/api-utils.h"
+#include "http/http-utils.h"
 #include "warp/log/log-utils.h"
 #include "warp/types.h"
 #include "warp/utils.h"
@@ -229,9 +229,9 @@ namespace warp
       }
    }
 
-   std::optional<EmbyItem> EmbyApi::GetItem(EmbySearchType type, std::string_view name, const ApiParams& extraSearchArgs)
+   std::optional<EmbyItem> EmbyApi::GetItem(EmbySearchType type, std::string_view name, const HttpParams& extraSearchArgs)
    {
-      ApiParams params = {
+      HttpParams params = {
          {RECURSIVE, "true"},
          {pimpl_->GetSearchTypeStr(type), name},
          {FIELDS, "Path,SeriesName,RunTimeTicks"}
@@ -377,7 +377,7 @@ namespace warp
 
    std::optional<EmbyPlaylist> EmbyApi::GetPlaylist(std::string_view name)
    {
-      static const ApiParams apiParams = {
+      static const HttpParams apiParams = {
          {INCLUDE_ITEM_TYPES, "Playlist"}
       };
       auto item = GetItem(EmbySearchType::name, name, apiParams);
@@ -456,7 +456,7 @@ namespace warp
 
    std::vector<EmbyItemBackdropImages> EmbyApi::GetItemsWithMultipleBackdrops(std::string_view libId)
    {
-      const ApiParams apiParams = {
+      const HttpParams apiParams = {
          {RECURSIVE, "true"},
          {INCLUDE_ITEM_TYPES, "Movie,Series"},
          {IS_MISSING, "false"},
@@ -529,7 +529,7 @@ namespace warp
 
    void EmbyApi::SetLibraryScan(std::string_view libraryId)
    {
-      static const ApiParams apiParams = {
+      static const HttpParams apiParams = {
          {RECURSIVE, "true"},
          {"ImageRefreshMode", "Default"},
          {"ReplaceAllImages", "false"},
@@ -650,7 +650,7 @@ namespace warp
    {
       parent_.LogTrace("Rebuilding Path Map");
 
-      static const ApiParams apiParams = {
+      static const HttpParams apiParams = {
          {RECURSIVE, "true"},
          {INCLUDE_ITEM_TYPES, "Movie,Episode"},
          {FIELDS, "Path,DateCreated"},
@@ -787,7 +787,7 @@ namespace warp
       if (timeToSearch.empty())
          return;
 
-      const ApiParams apiParams = {
+      const HttpParams apiParams = {
          {RECURSIVE, "true"},
          {INCLUDE_ITEM_TYPES, "Movie,Episode"},
          {"MinDateCreated", timeToSearch},

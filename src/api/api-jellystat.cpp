@@ -1,7 +1,7 @@
 #include "warp/api/api-jellystat.h"
 
 #include "api/api-jellystat-json-types.h"
-#include "api/api-utils.h"
+#include "http/http-utils.h"
 #include "warp/log/log-utils.h"
 #include "warp/utils.h"
 
@@ -33,7 +33,7 @@ namespace warp
       : parent_(p)
    {
       headers_ = {
-         {"x-api-token", parent_.GetApiKey()},
+         {"x-api-token", std::string(parent_.GetApiKey())},
          {"Content-Type", APPLICATION_JSON},
          {"User-Agent", std::format("{}/{}", appName, version)}
       };

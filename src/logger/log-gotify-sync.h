@@ -2,9 +2,11 @@
 
 #include "warp/utils.h"
 
-#include <httplib.h>
+#include "warp/http/http-client.h"
+
 #include <spdlog/sinks/base_sink.h>
 
+#include <format>
 #include <mutex>
 #include <string>
 
@@ -17,10 +19,9 @@ namespace warp
       explicit LogGotifySink(const GotifyLoggingConfig& config)
          : client_(config.url)
          , title_(config.message_title)
-         , priority_{config.priority}
+         , priority_{std::format("{}", config.priority)}
          , headers_{{"X-Gotify-Key", config.key}}
-      {
-      }
+      {}
 
    protected:
       void sink_it_(const spdlog::details::log_msg& msg) override
@@ -37,23 +38,22 @@ namespace warp
             pos += 2;
          }
 
-         httplib::Params params{
+         HttpParams params{
             {"title", title_},
             {"message", message},
-            {"priority", std::format("{}", priority_)}
+            {"priority", priority_}
          };
          auto res = client_.Post("/message", headers_, params);
       }
 
       void flush_() override
-      {
-      }
+      {}
 
    private:
-      httplib::Client client_;
+      HttpClient client_;
       std::string title_;
-      int32_t priority_{0};
-      httplib::Headers headers_;
+      std::string priority_;
+      Headers headers_;
    };
 
    using gotify_sink_mt = LogGotifySink<std::mutex>;

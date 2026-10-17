@@ -2,7 +2,8 @@
 
 #include "warp/utils.h"
 
-#include <httplib.h>
+#include "warp/http/http-client.h"
+
 #include <spdlog/sinks/base_sink.h>
 
 #include <mutex>
@@ -18,8 +19,7 @@ namespace warp
          : client_(config.url)
          , key_(config.key)
          , title_(config.message_title)
-      {
-      }
+      {}
 
    protected:
       void sink_it_(const spdlog::details::log_msg& msg) override
@@ -36,7 +36,7 @@ namespace warp
             pos += 2;
          }
 
-         httplib::Params params{
+         HttpParams params{
             {"title", title_},
             {"body", message}
          };
@@ -44,11 +44,10 @@ namespace warp
       }
 
       void flush_() override
-      {
-      }
+      {}
 
    private:
-      httplib::Client client_;
+      HttpClient client_;
       std::string key_;
       std::string title_;
    };

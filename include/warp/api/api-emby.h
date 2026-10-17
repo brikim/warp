@@ -31,7 +31,7 @@ namespace warp
       [[nodiscard]] std::optional<std::string> GetTracearrServerName() const;
       [[nodiscard]] std::optional<std::string> GetLibraryId(std::string_view libraryName);
 
-      std::optional<EmbyItem> GetItem(EmbySearchType type, std::string_view name, const ApiParams& extraSearchArgs = {});
+      std::optional<EmbyItem> GetItem(EmbySearchType type, std::string_view name, const HttpParams& extraSearchArgs = {});
 
       [[nodiscard]] std::optional<EmbyUserData> GetUser(std::string_view name);
 

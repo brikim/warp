@@ -45,11 +45,12 @@ set(WARP_SOURCES
     include/warp/api/api-manager.h
     include/warp/api/api-plex-types.h
     include/warp/api/api-plex.h
-    include/warp/api/api-response.h
     include/warp/api/api-tautulli-types.h
     include/warp/api/api-tautulli.h
     include/warp/api/api-tracearr.h
     include/warp/api/api-types.h
+    include/warp/http/http-client.h
+    include/warp/http/http-response.h
     include/warp/log/log.h
     include/warp/log/logger.h
     include/warp/log/log-types.h
@@ -69,7 +70,8 @@ set(WARP_SOURCES
     src/api/api-tautulli-json-types.h
     src/api/api-tautulli.cpp
     src/api/api-tracearr.cpp
-    src/api/api-utils.h
+    src/http/http-client.cpp
+    src/http/http-utils.h
     src/logger/ansii-formatter.cpp
     src/logger/ansii-formatter.h
     src/logger/ansii-remove-formatter.cpp

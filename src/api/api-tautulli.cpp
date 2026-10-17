@@ -1,7 +1,7 @@
 #include "warp/api/api-tautulli.h"
 
 #include "api/api-tautulli-json-types.h"
-#include "api/api-utils.h"
+#include "http/http-utils.h"
 #include "warp/log/log-utils.h"
 #include "warp/utils.h"
 
@@ -48,7 +48,7 @@ namespace warp
 
       [[nodiscard]] std::optional<TautulliHistoryItems> GetWatchHistory(std::string_view user,
                                                                         int64_t epochHistoryTime,
-                                                                        const ApiParams& extraParams);
+                                                                        const HttpParams& extraParams);
 
       int32_t GetWatchedPercent() const;
 
@@ -169,9 +169,9 @@ namespace warp
 
    std::optional<TautulliHistoryItems> TautulliApi::TautulliApiImpl::GetWatchHistory(std::string_view user,
                                                                                      int64_t epochHistoryTime,
-                                                                                     const ApiParams& extraParams)
+                                                                                     const HttpParams& extraParams)
    {
-      ApiParams params = {
+      HttpParams params = {
          GetCmdParam(CMD_GET_HISTORY),
          {INCLUDE_ACTIVITY, "0"},
          {USER, user}
