@@ -108,7 +108,7 @@ namespace warp
 
    bool ApiBase::IsHttpSuccess(std::string_view name, const Response& response, bool log)
    {
-      auto errorStr = pimpl_->client_.GetHttpResponseStr(name, response);
+      auto errorStr = pimpl_->client_.GetHttpResponseStr(response);
       if (!errorStr)
       {
          // Everything passed

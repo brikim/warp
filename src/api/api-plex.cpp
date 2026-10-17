@@ -600,7 +600,7 @@ namespace warp
 
    bool PlexApi::PlexApiImpl::CheckHttpSuccess(const warp::Response& res, std::string_view function)
    {
-      auto errorStr = plexTvClient_.GetHttpResponseStr(function, res);
+      auto errorStr = plexTvClient_.GetHttpResponseStr(res);
       if (!errorStr)
          return true;
 

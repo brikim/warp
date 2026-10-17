@@ -221,7 +221,7 @@ namespace warp
       };
    }
 
-   std::optional<std::string> HttpClient::GetHttpResponseStr(std::string_view name, const Response& response)
+   std::optional<std::string> HttpClient::GetHttpResponseStr(const Response& response)
    {
       if (response.error == Error::Success && response.status < VALID_HTTP_RESPONSE_MAX)
       {

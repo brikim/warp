@@ -38,7 +38,7 @@ namespace warp
                                                     const std::optional<std::string_view> loginToken = std::nullopt,
                                                     const std::optional<std::string_view> loginKey = std::nullopt) const;
 
-      [[nodiscard]] std::optional<std::string> GetHttpResponseStr(std::string_view name, const Response& response);
+      [[nodiscard]] std::optional<std::string> GetHttpResponseStr(const Response& response);
 
    private:
       struct HttpClientImpl;
