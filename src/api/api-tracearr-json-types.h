@@ -131,6 +131,7 @@ namespace warp
    {
       std::string id;
       std::string name;
+      std::optional<std::string> tracearrName;
       std::vector<JsonTracearrUserAccount> accounts;
 
       struct glaze
@@ -138,6 +139,7 @@ namespace warp
          static constexpr auto value = glz::object(
                "id", &JsonTracearrUser::id,
                "username", &JsonTracearrUser::name,
+               "identity_name", &JsonTracearrUser::tracearrName,
                "accounts", &JsonTracearrUser::accounts
          );
       };

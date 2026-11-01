@@ -248,7 +248,7 @@ namespace warp
       return std::nullopt;
    }
 
-   std::optional<TracearrUser> TracearrApi::GetUser(std::string_view id)
+   std::optional<TracearrUser> TracearrApi::GetUserById(std::string_view id)
    {
       std::shared_lock lock(pimpl_->dataLock_);
       auto it = pimpl_->users_.find(id);
@@ -258,6 +258,34 @@ namespace warp
          returnUser.id = it->first;
          returnUser.name = it->second.name;
          for (const auto& account : it->second.accounts)
+         {
+            returnUser.accounts.emplace_back(TracearrUserAccount{
+               .serverId = account.serverId,
+               .serverType = account.serverType,
+               .serverUserId = account.serverUserId,
+               .externalUserId = account.externalUserId,
+               .externalUserName = account.externalUserName
+            });
+         }
+         return returnUser;
+      }
+      return std::nullopt;
+   }
+
+   std::optional<TracearrUser> TracearrApi::GetUserByName(std::string_view name)
+   {
+      std::shared_lock lock(pimpl_->dataLock_);
+      for (const auto& pair : pimpl_->users_)
+      {
+         if (pair.second.name != name)
+         {
+            continue;
+         }
+
+         TracearrUser returnUser;
+         returnUser.id = pair.first;
+         returnUser.name = pair.second.name;
+         for (const auto& account : pair.second.accounts)
          {
             returnUser.accounts.emplace_back(TracearrUserAccount{
                .serverId = account.serverId,
@@ -341,7 +369,16 @@ namespace warp
       for (auto& user : serverResponse.users)
       {
          UserData userData;
-         userData.name = std::move(user.name);
+
+         if (user.tracearrName.has_value() && !user.tracearrName.value().empty())
+         {
+            userData.name = std::move(user.tracearrName.value());
+         }
+         else
+         {
+            userData.name = std::move(user.name);
+         }
+
          userData.accounts.reserve(user.accounts.size());
          for (auto& account : user.accounts)
          {

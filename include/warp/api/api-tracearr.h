@@ -39,7 +39,8 @@ namespace warp
       [[nodiscard]] std::optional<std::string_view> GetServerNameFromId(std::string_view id);
 
       // Returns the user information for the given user id. If the user is not found, returns nullopt
-      [[nodiscard]] std::optional<TracearrUser> GetUser(std::string_view id);
+      [[nodiscard]] std::optional<TracearrUser> GetUserById(std::string_view id);
+      [[nodiscard]] std::optional<TracearrUser> GetUserByName(std::string_view name);
 
    protected:
       std::string_view GetApiBase() const override;
