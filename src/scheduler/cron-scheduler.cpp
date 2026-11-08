@@ -1,12 +1,11 @@
 ﻿#include "warp/scheduler/cron-scheduler.h"
 
-#include "warp/log/log.h"
 #include "warp/log/log-utils.h"
-
-#include <libcron/Cron.h>
+#include "warp/log/log.h"
 
 #include <algorithm>
 #include <atomic>
+#include <libcron/Cron.h>
 #include <ranges>
 
 namespace warp
@@ -58,8 +57,7 @@ namespace warp
          {
             log::Trace("Cron Scheduler: Running {} with {}", tagTaskName, tagCronName);
             task.func();
-         }
-         catch (const std::exception& e)
+         } catch (const std::exception& e)
          {
             log::Error("Cron Scheduler: {} caught {}",
                        tagTaskName,
@@ -73,7 +71,6 @@ namespace warp
          log::Error("Cron Scheduler: Failed to schedule {} {}",
                     tagTaskName,
                     tagCronName);
-
    }
 
    void CronScheduler::Add(const Task& task)
@@ -134,4 +131,4 @@ namespace warp
    {
       pimpl_->Shutdown();
    }
-}
+} // namespace warp

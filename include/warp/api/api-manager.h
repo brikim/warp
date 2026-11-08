@@ -61,4 +61,4 @@ namespace warp
    private:
       std::unique_ptr<ApiManagerImpl> pimpl_;
    };
-}
+} // namespace warp

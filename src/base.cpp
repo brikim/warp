@@ -10,8 +10,8 @@ namespace warp
               std::string_view ansiiCode,
               std::optional<std::string_view> classExtra)
       : header_(classExtra.has_value()
-                ? std::format("{}{}{}({})", ansiiCode, className, warp::ANSI_CODE_LOG, classExtra.value())
-                : warp::GetServiceHeader(ansiiCode, className))
+                   ? std::format("{}{}{}({})", ansiiCode, className, warp::ANSI_CODE_LOG, classExtra.value())
+                   : warp::GetServiceHeader(ansiiCode, className))
    {
    }
-}
+} // namespace warp

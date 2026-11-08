@@ -1,10 +1,8 @@
 #pragma once
 
+#include <memory>
 #include <spdlog/formatter.h>
 #include <spdlog/pattern_formatter.h>
-
-#include <memory>
-#include <string>
 
 namespace warp
 {
@@ -21,4 +19,4 @@ namespace warp
    private:
       spdlog::pattern_formatter patternFormatter_;
    };
-}
+} // namespace warp

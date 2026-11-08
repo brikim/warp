@@ -55,4 +55,4 @@ namespace warp
       friend struct ApiBaseImpl;
       std::unique_ptr<ApiBaseImpl> pimpl_;
    };
-}
+} // namespace warp

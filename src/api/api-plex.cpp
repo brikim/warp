@@ -7,15 +7,12 @@
 #include "warp/types.h"
 #include "warp/utils.h"
 
-#include <glaze/glaze.hpp>
-#include <pugixml.hpp>
-
 #include <algorithm>
-#include <charconv>
 #include <cmath>
-#include <deque>
 #include <format>
+#include <glaze/glaze.hpp>
 #include <mutex>
+#include <pugixml.hpp>
 #include <ranges>
 #include <shared_mutex>
 
@@ -35,7 +32,7 @@ namespace warp
       constexpr std::string_view API_SERVERS{"/servers"};
       constexpr std::string_view API_LIBRARIES{"/library/sections"};
       constexpr std::string_view API_LIBRARY_DATA{"/library/metadata"};
-   }
+   } // namespace
 
    struct PlexApi::PlexApiImpl
    {
@@ -120,8 +117,7 @@ namespace warp
          // to the Plex API. This must remain constant across runs so Plex recognizes warp
          // as a trusted client. Do not change unless intentionally re-registering with Plex.
          {"X-Plex-Client-Identifier", "6e7417e2-8d76-4b1f-9c23-018274959a37"},
-         {"User-Agent", std::format("{}/{}", appName, version)}
-      };
+         {"User-Agent", std::format("{}/{}", appName, version)}};
 
       headersNoToken_ = baseHeaders;
       headersNoToken_.emplace("Accept", APPLICATION_JSON);
@@ -145,17 +141,19 @@ namespace warp
                     const ServerConfig& serverConfig,
                     const ServerPlexOptions& options)
       : ApiBase(ApiBaseData{.name = serverConfig.serverName,
-                .url = serverConfig.url,
-                .apiKey = serverConfig.apiKey,
-                .className = "PlexApi",
-                .ansiiCode = ANSI_CODE_PLEX,
-                .prettyName = GetServerName(GetFormattedPlex(), serverConfig.serverName)})
+                            .url = serverConfig.url,
+                            .apiKey = serverConfig.apiKey,
+                            .className = "PlexApi",
+                            .ansiiCode = ANSI_CODE_PLEX,
+                            .prettyName = GetServerName(GetFormattedPlex(), serverConfig.serverName)})
       , pimpl_(std::make_unique<PlexApiImpl>(*this, appName, version, serverConfig))
    {
       if (options.enableCacheCollection)
          pimpl_->EnableCacheCollections();
+
       if (options.enableCachePaths)
          pimpl_->EnableCachePaths();
+
       if (options.enableUserTokens)
          pimpl_->EnableUserTokens();
    }
@@ -187,12 +185,12 @@ namespace warp
       auto& quickCheck = tasks.emplace_back();
       quickCheck.name = std::format("{} - Refresh Cache Quick", GetPrettyName());
       quickCheck.cronExpression = GetNextCronQuickTime();
-      quickCheck.func = [this]() {pimpl_->RefreshCache(false); };
+      quickCheck.func = [this]() { pimpl_->RefreshCache(false); };
 
       auto& fullUpdate = tasks.emplace_back();
       fullUpdate.name = std::format("{} - Refresh Cache Full", GetPrettyName());
       fullUpdate.cronExpression = GetNextCronFullTime();
-      fullUpdate.func = [this]() {pimpl_->RefreshCache(true); };
+      fullUpdate.func = [this]() { pimpl_->RefreshCache(true); };
 
       return tasks;
    }
@@ -227,10 +225,12 @@ namespace warp
          return std::nullopt;
 
       JsonPlexResponse<JsonPlexServerData> serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
-         LogWarning("{} - JSON Parse Error: {}",
-                    __func__, glz::format_error(ec, res.body));
+         LogWarning(
+            "{} - JSON Parse Error: {}",
+            __func__,
+            glz::format_error(ec, res.body));
          return std::nullopt;
       }
 
@@ -280,8 +280,7 @@ namespace warp
          if (auto iter = pimpl_->pathToIdCache_.find(filePath);
              iter == pimpl_->pathToIdCache_.end())
          {
-            LogWarning("{} - No rating key found for path {}",
-                       __func__, GetTag("path", filePath.generic_string()));
+            LogWarning("{} - No rating key found for path {}", __func__, GetTag("path", filePath.generic_string()));
             return std::nullopt;
          }
          else
@@ -298,10 +297,9 @@ namespace warp
          return std::nullopt;
 
       JsonPlexResponse<JsonPlexMetadataContainer> serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
-         LogWarning("{} - JSON Parse Error: {}",
-                    __func__, glz::format_error(ec, res.body));
+         LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
          return std::nullopt;
       }
 
@@ -366,8 +364,7 @@ namespace warp
 
       if (userToken.empty())
       {
-         LogWarning("{} - No token found for user {}",
-                   __func__, GetTag("userName", userName));
+         LogWarning("{} - No token found for user {}", __func__, GetTag("userName", userName));
          return std::nullopt;
       }
 
@@ -411,9 +408,7 @@ namespace warp
 
    void PlexApi::SetLibraryScanPath(std::string_view libraryId, const std::filesystem::path& path)
    {
-      auto apiPath = BuildApiParamsPath(std::format("{}/{}/refresh", API_LIBRARIES, libraryId), {
-         { "path", path.generic_string() }
-      });
+      auto apiPath = BuildApiParamsPath(std::format("{}/{}/refresh", API_LIBRARIES, libraryId), {{"path", path.generic_string()}});
       auto res = Get(apiPath, pimpl_->adminHeaders_);
       IsHttpSuccess(__func__, res);
    }
@@ -459,10 +454,9 @@ namespace warp
          return std::nullopt;
 
       JsonPlexResponse<JsonPlexLibrarySectionResult> serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
-         LogWarning("{} - JSON Parse Error: {}",
-                    __func__, glz::format_error(ec, res.body));
+         LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
          return {};
       }
 
@@ -504,12 +498,14 @@ namespace warp
       if (userToken.empty())
          return false;
 
-      const auto apiPath = BuildApiParamsPath("/:/progress", {
-         {"identifier", "com.plexapp.plugins.library"},
-         {"key", ratingKey},
-         {"time", std::format("{}", locationMs)},
-         {"state", "stopped"} // 'stopped' commits the time to the database
-      });
+      const auto apiPath = BuildApiParamsPath(
+         "/:/progress",
+         {
+            {"identifier", "com.plexapp.plugins.library"},
+            {"key", ratingKey},
+            {"time", std::format("{}", locationMs)},
+            {"state", "stopped"} // 'stopped' commits the time to the database
+         });
 
       auto headersToUse = pimpl_->headersNoToken_;
       headersToUse.emplace(API_TOKEN_NAME, userToken);
@@ -519,12 +515,13 @@ namespace warp
       {
          auto d = std::chrono::milliseconds(locationMs);
          std::chrono::hh_mm_ss timeSplit{std::chrono::duration_cast<std::chrono::seconds>(d)};
-         LogError("{} - Failed to mark {} to play location {}:{}:{}",
-                  __func__,
-                  GetTag("ratingKey", ratingKey),
-                  timeSplit.hours().count(),
-                  timeSplit.minutes().count(),
-                  timeSplit.seconds().count());
+         LogError(
+            "{} - Failed to mark {} to play location {}:{}:{}",
+            __func__,
+            GetTag("ratingKey", ratingKey),
+            timeSplit.hours().count(),
+            timeSplit.minutes().count(),
+            timeSplit.seconds().count());
          return false;
       }
 
@@ -545,8 +542,7 @@ namespace warp
 
       if (userToken.empty())
       {
-         LogWarning("{} - No token found for user {}",
-                    __func__, GetTag("userName", userName));
+         LogWarning("{} - No token found for user {}", __func__, GetTag("userName", userName));
          return false;
       }
 
@@ -558,10 +554,7 @@ namespace warp
       if (userToken.empty())
          return false;
 
-      const auto apiPath = BuildApiParamsPath("/:/scrobble", {
-         {"identifier", "com.plexapp.plugins.library"},
-         {"key", ratingKey}
-      });
+      const auto apiPath = BuildApiParamsPath("/:/scrobble", {{"identifier", "com.plexapp.plugins.library"}, {"key", ratingKey}});
 
       auto headersToUse = pimpl_->headersNoToken_;
       headersToUse.emplace(API_TOKEN_NAME, userToken);
@@ -590,8 +583,7 @@ namespace warp
 
       if (userToken.empty())
       {
-         LogWarning("{} - No token found for user {}",
-                    __func__, GetTag("userName", userName));
+         LogWarning("{} - No token found for user {}", __func__, GetTag("userName", userName));
          return false;
       }
 
@@ -617,10 +609,9 @@ namespace warp
          return;
 
       JsonPlexResponse<JsonPlexLibraryResult> serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
-         parent_.LogWarning("{} - JSON Parse Error: {}",
-                           __func__, glz::format_error(ec, res.body));
+         parent_.LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
          return;
       }
 
@@ -628,12 +619,13 @@ namespace warp
       workingLibraries.reserve(serverResponse.response.libraries.size());
       for (auto& library : serverResponse.response.libraries)
       {
-         workingLibraries.emplace(std::move(library.title), LibraryData{
-            .id = std::move(library.id),
-            .type = std::move(library.type),
-            .agent = std::move(library.agent),
-            .contentChangedAt = library.contentChangedAt
-         });
+         workingLibraries.emplace(
+            std::move(library.title),
+            LibraryData{
+               .id = std::move(library.id),
+               .type = std::move(library.type),
+               .agent = std::move(library.agent),
+               .contentChangedAt = library.contentChangedAt});
       }
 
       if (!workingLibraries.empty())
@@ -667,19 +659,16 @@ namespace warp
       bool success = false;
       for (const auto& id : libraryIds)
       {
-         std::string apiPath = parent_.BuildApiParamsPath(std::format("{}/{}/all", API_LIBRARIES, id), {
-            {"type", std::format("{}", static_cast<int>(plex_search_collection))}
-         });
+         std::string apiPath = parent_.BuildApiParamsPath(std::format("{}/{}/all", API_LIBRARIES, id), {{"type", std::format("{}", static_cast<int>(plex_search_collection))}});
 
          auto res = parent_.Get(apiPath, adminHeaders_);
          if (!parent_.IsHttpSuccess(__func__, res))
             continue;
 
          JsonPlexResponse<JsonPlexLibrarySectionResult> serverResponse;
-         if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+         if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
          {
-            parent_.LogWarning("{} - JSON Parse Error: {}",
-                              __func__, glz::format_error(ec, res.body));
+            parent_.LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
             continue;
          }
 
@@ -761,11 +750,11 @@ namespace warp
          bool success = true;
          while (success)
          {
-            auto apiPath = parent_.BuildApiParamsPath(std::format("{}/{}/all", API_LIBRARIES, library.second.id), {
-               {"X-Plex-Container-Start", std::format("{}", currentIndex)},
-               {"X-Plex-Container-Size", pageSizeStr},
-               {"type", libraryTypeStr}
-            });
+            auto apiPath = parent_.BuildApiParamsPath(
+               std::format("{}/{}/all", API_LIBRARIES, library.second.id),
+               {{"X-Plex-Container-Start", std::format("{}", currentIndex)},
+                {"X-Plex-Container-Size", pageSizeStr},
+                {"type", libraryTypeStr}});
 
             // Increment the current index for the next page
             currentIndex += pageSize;
@@ -778,10 +767,9 @@ namespace warp
             }
 
             JsonPlexResponse<JsonPlexLibrarySectionResult> serverResponse;
-            if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+            if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
             {
-               parent_.LogWarning("{} - JSON Parse Error: {}",
-                                 __func__, glz::format_error(ec, res.body));
+               parent_.LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
                allLibrariesSucceeded = false;
                break;
             }
@@ -952,7 +940,7 @@ namespace warp
          return;
 
       JsonPlexResponse<JsonPlexLibraryResult> serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
          parent_.LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
          return;
@@ -981,26 +969,25 @@ namespace warp
                targets.emplace_back(SearchTarget{
                   .sectionId = it->second.id,
                   .title = library.title,
-                  .lastKnownUpdate = it->second.latestUpdateTime
-               });
+                  .lastKnownUpdate = it->second.latestUpdateTime});
             }
          }
       }
 
       for (const auto& target : targets)
       {
-         auto apiPath = parent_.BuildApiParamsPath(std::format("{}/{}/recentlyAdded", API_LIBRARIES, target.sectionId), {
-             {"sort", "updatedAt:desc"},
+         auto apiPath = parent_.BuildApiParamsPath(
+            std::format("{}/{}/recentlyAdded", API_LIBRARIES, target.sectionId),
+            {{"sort", "updatedAt:desc"},
              {"X-Plex-Container-Start", "0"},
-             {"X-Plex-Container-Size", "50"}
-         });
+             {"X-Plex-Container-Size", "50"}});
 
          auto res = parent_.Get(apiPath, adminHeaders_);
          if (!parent_.IsHttpSuccess(__func__, res))
             continue;
 
          JsonPlexResponse<JsonPlexLibrarySectionResult> sectionData;
-         if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (sectionData, res.body))
+         if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(sectionData, res.body))
             continue;
 
          if (sectionData.response.data.empty())
@@ -1032,7 +1019,6 @@ namespace warp
                   parent_.LogTrace("Incremental update: Path:{} -> RatingKey:{}", part.file.string(), item.ratingKey);
                   idToPathCache_.insert_or_assign(item.ratingKey, part.file);
                   pathToIdCache_.insert_or_assign(part.file, item.ratingKey);
-
                }
             }
          }
@@ -1108,4 +1094,4 @@ namespace warp
       if (enableUserTokens_)
          UpdateUserTokens(forceRefresh);
    }
-}
+} // namespace warp

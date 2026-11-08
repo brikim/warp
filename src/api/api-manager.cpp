@@ -1,10 +1,9 @@
 #include "warp/api/api-manager.h"
 
-#include "warp/log/log.h"
 #include "warp/log/log-utils.h"
+#include "warp/log/log.h"
 
 #include <format>
-#include <ranges>
 #include <string>
 
 namespace warp
@@ -73,21 +72,24 @@ namespace warp
          std::ranges::for_each(jellystatApis_, [](auto& api) {
             api->Shutdown();
          });
-         if (tracearrApi_) tracearrApi_->Shutdown();
+         if (tracearrApi_)
+            tracearrApi_->Shutdown();
       }
 
       void LogServerConnectionSuccess(std::string_view serverName, ApiBase* api)
       {
          auto reported = api->GetServerReportedName();
          log::Info("Connected to {}({}) successfully.{}",
-                   serverName, api->GetName(),
+                   serverName,
+                   api->GetName(),
                    reported ? std::format(" Server reported {}", GetTag("name", *reported)) : "");
       }
 
       void LogServerConnectionError(std::string_view serverName, ApiBase* api)
       {
          log::Warning("{}({}) server not available. Is this correct? {} {}",
-                      serverName, api->GetName(),
+                      serverName,
+                      api->GetName(),
                       GetTag("url", api->GetUrl()),
                       GetTag("api_key", api->GetApiKey()));
       }
@@ -115,11 +117,13 @@ namespace warp
 
       void InitializeApiTasks(ApiBase* api, std::vector<Task>& tasks)
       {
-         if (!api) return;
+         if (!api)
+            return;
 
          if (auto taskList = api->GetTaskList())
          {
-            for (const auto& task : *taskList) tasks.emplace_back(task);
+            for (const auto& task : *taskList)
+               tasks.emplace_back(task);
          }
       }
 
@@ -190,12 +194,18 @@ namespace warp
       {
          switch (type)
          {
-            case ApiType::PLEX:      return FindApi(plexApis_, name);
-            case ApiType::EMBY:      return FindApi(embyApis_, name);
-            case ApiType::TAUTULLI:  return FindApi(tautulliApis_, name);
-            case ApiType::JELLYSTAT: return FindApi(jellystatApis_, name);
-            case ApiType::TRACEARR:  return tracearrApi_.get();
-            default:                 return nullptr;
+         case ApiType::PLEX:
+            return FindApi(plexApis_, name);
+         case ApiType::EMBY:
+            return FindApi(embyApis_, name);
+         case ApiType::TAUTULLI:
+            return FindApi(tautulliApis_, name);
+         case ApiType::JELLYSTAT:
+            return FindApi(jellystatApis_, name);
+         case ApiType::TRACEARR:
+            return tracearrApi_.get();
+         default:
+            return nullptr;
          }
       }
    };
@@ -261,4 +271,4 @@ namespace warp
    {
       return pimpl_->GetApi(type, name);
    }
-}
+} // namespace warp

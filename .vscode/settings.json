@@ -1,7 +1,16 @@
 {
     "cSpell.words": [
+        "ANSII",
         "emby",
+        "jellyfin",
         "jellystat",
-        "tautulli"
+        "tautulli",
+        "PLEXTV"
+    ],
+    "cmake.generator": "Ninja",
+    "cmake.exportCompileCommandsFile": true,
+    "cmake.useVsDeveloperEnvironment": "always",
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/build"
     ]
 }

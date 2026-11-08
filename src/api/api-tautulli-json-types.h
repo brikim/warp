@@ -1,9 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
-
 #include <glaze/glaze.hpp>
+#include <string>
 
 namespace warp
 {
@@ -13,9 +12,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-             "movie_watched_percent", &JsonTautulliMonitorInfo::movie_watched_percent
-         );
+            "movie_watched_percent", &JsonTautulliMonitorInfo::movie_watched_percent);
+         // clang-format on
       };
    };
 
@@ -25,9 +25,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-             "pms_name", &JsonTautulliServerInfo::pms_name
-         );
+            "pms_name", &JsonTautulliServerInfo::pms_name);
+         // clang-format on
       };
    };
 
@@ -39,11 +40,12 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-             "username", &JsonUserInfo::username,
-             "user_id", &JsonUserInfo::user_id,
-             "friendly_name", &JsonUserInfo::friendly_name
-         );
+            "username", &JsonUserInfo::username,
+            "user_id", &JsonUserInfo::user_id,
+            "friendly_name", &JsonUserInfo::friendly_name);
+         // clang-format on
       };
    };
 
@@ -59,15 +61,16 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-             "title", &JsonTautulliHistoryItem::title,
-             "full_title", &JsonTautulliHistoryItem::full_title,
-             "date", &JsonTautulliHistoryItem::date,
-             "rating_key", &JsonTautulliHistoryItem::rating_key,
-             "stopped", &JsonTautulliHistoryItem::stopped,
-             "percent_complete", &JsonTautulliHistoryItem::percent_complete,
-             "live", &JsonTautulliHistoryItem::live
-         );
+            "title", &JsonTautulliHistoryItem::title,
+            "full_title", &JsonTautulliHistoryItem::full_title,
+            "date", &JsonTautulliHistoryItem::date,
+            "rating_key", &JsonTautulliHistoryItem::rating_key,
+            "stopped", &JsonTautulliHistoryItem::stopped,
+            "percent_complete", &JsonTautulliHistoryItem::percent_complete,
+            "live", &JsonTautulliHistoryItem::live);
+         // clang-format on
       };
    };
 
@@ -77,9 +80,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-             "data", &JsonTautulliHistoryData::data
-         );
+            "data", &JsonTautulliHistoryData::data);
+         // clang-format on
       };
    };
 
@@ -89,15 +93,16 @@ namespace warp
       struct InternalData
       {
          std::string result; // "success" or "error"
-         T data;              // This is the actual object/vector you want
+         T data;             // This is the actual object/vector you want
 
          struct glaze
          {
             using T_int = InternalData;
+            // clang-format off
             static constexpr auto value = glz::object(
                "result", &T_int::result,
-               "data", &T_int::data
-            );
+               "data", &T_int::data);
+            // clang-format on
          };
       };
 
@@ -105,9 +110,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-            "response", &JsonTautulliResponse::response
-         );
+            "response", &JsonTautulliResponse::response);
+         // clang-format on
       };
    };
-}
+} // namespace warp

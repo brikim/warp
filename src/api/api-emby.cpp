@@ -6,10 +6,8 @@
 #include "warp/types.h"
 #include "warp/utils.h"
 
-#include <glaze/glaze.hpp>
-
 #include <format>
-#include <ranges>
+#include <glaze/glaze.hpp>
 #include <shared_mutex>
 
 namespace warp
@@ -37,8 +35,7 @@ namespace warp
       constexpr std::string_view BACKDROP("Backdrop");
       constexpr std::string_view PARENT_ID("ParentId");
       constexpr std::string_view INCLUDE_ITEM_TYPES("IncludeItemTypes");
-      constexpr std::string_view EPISODE{"Episode"};
-   }
+   } // namespace
 
    struct EmbyApi::EmbyApiImpl
    {
@@ -96,33 +93,36 @@ namespace warp
       , mediaPath_(serverConfig.mediaPath)
       , tracearrServerName_(serverConfig.tracearrServerName)
    {
-      std::string auth = std::format("MediaBrowser Client=\"{}\", Device=\"PC\", DeviceId=\"{}\", Version=\"{}\", Token=\"{}\"",
-                                     appName,
-                                     "6e7417e2-8d76-4b1f-9c23-018274959a37",
-                                     version,
-                                     serverConfig.apiKey);
+      std::string auth = std::format(
+         "MediaBrowser Client=\"{}\", Device=\"PC\", DeviceId=\"{}\", Version=\"{}\", Token=\"{}\"",
+         appName,
+         "6e7417e2-8d76-4b1f-9c23-018274959a37",
+         version,
+         serverConfig.apiKey);
       headers_ = {
          {"X-Emby-Authorization", auth},
          {"Accept", APPLICATION_JSON},
-         {"User-Agent", std::format("{}/{}", appName, version)}
-      };
+         {"User-Agent", std::format("{}/{}", appName, version)}};
 
       UpdateRequiredCache(true);
    }
 
-   EmbyApi::EmbyApi(std::string_view appName,
-                    std::string_view version,
-                    const ServerConfig& serverConfig,
-                    const ServerEmbyOptions& options)
-      : ApiBase(ApiBaseData{.name = serverConfig.serverName,
-            .url = serverConfig.url,
-            .apiKey = serverConfig.apiKey,
-            .className = "EmbyApi",
-            .ansiiCode = ANSI_CODE_EMBY,
-            .prettyName = GetServerName(GetFormattedEmby(), serverConfig.serverName)})
+   EmbyApi::EmbyApi(
+      std::string_view appName,
+      std::string_view version,
+      const ServerConfig& serverConfig,
+      const ServerEmbyOptions& options)
+      : ApiBase(ApiBaseData{
+           .name = serverConfig.serverName,
+           .url = serverConfig.url,
+           .apiKey = serverConfig.apiKey,
+           .className = "EmbyApi",
+           .ansiiCode = ANSI_CODE_EMBY,
+           .prettyName = GetServerName(GetFormattedEmby(), serverConfig.serverName)})
       , pimpl_(std::make_unique<EmbyApiImpl>(*this, appName, version, serverConfig))
    {
-      if (options.enableCachePaths) pimpl_->EnableCachePaths();
+      if (options.enableCachePaths)
+         pimpl_->EnableCachePaths();
    }
 
    EmbyApi::~EmbyApi() = default;
@@ -140,12 +140,12 @@ namespace warp
       auto& quickCheck = tasks.emplace_back();
       quickCheck.name = std::format("{} - Refresh Cache Quick", GetPrettyName());
       quickCheck.cronExpression = GetNextCronQuickTime();
-      quickCheck.func = [this]() {pimpl_->RefreshCache(false); };
+      quickCheck.func = [this]() { pimpl_->RefreshCache(false); };
 
       auto& fullUpdate = tasks.emplace_back();
       fullUpdate.name = std::format("{} - Refresh Cache Full", GetPrettyName());
       fullUpdate.cronExpression = GetNextCronFullTime();
-      fullUpdate.func = [this]() {pimpl_->RefreshCache(true); };
+      fullUpdate.func = [this]() { pimpl_->RefreshCache(true); };
 
       return tasks;
    }
@@ -180,10 +180,11 @@ namespace warp
       }
 
       JsonServerResponse serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
          LogWarning("{} - JSON Parse Error: {}",
-                    __func__, glz::format_error(ec, res.body));
+                    __func__,
+                    glz::format_error(ec, res.body));
          return std::nullopt;
       }
 
@@ -220,12 +221,12 @@ namespace warp
    {
       switch (type)
       {
-         case EmbySearchType::id:
-            return IDS;
-         case EmbySearchType::path:
-            return PATH;
-         default:
-            return SEARCH_TERM;
+      case EmbySearchType::id:
+         return IDS;
+      case EmbySearchType::path:
+         return PATH;
+      default:
+         return SEARCH_TERM;
       }
    }
 
@@ -234,8 +235,7 @@ namespace warp
       HttpParams params = {
          {RECURSIVE, "true"},
          {pimpl_->GetSearchTypeStr(type), name},
-         {FIELDS, "Path,SeriesName,RunTimeTicks"}
-      };
+         {FIELDS, "Path,SeriesName,RunTimeTicks"}};
       params.reserve(params.size() + extraSearchArgs.size());
       params.insert(params.end(), extraSearchArgs.begin(), extraSearchArgs.end());
 
@@ -244,7 +244,7 @@ namespace warp
          return std::nullopt;
 
       JsonEmbyItemsResponse response;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (response, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
       {
          LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
          return std::nullopt;
@@ -254,10 +254,14 @@ namespace warp
       auto it = std::ranges::find_if(response.Items, [&](const JsonEmbyItem& item) {
          switch (type)
          {
-            case EmbySearchType::id:   return item.Id == name;
-            case EmbySearchType::path: return item.Path == name;
-            case EmbySearchType::name: return item.Name == name;
-            default: return false;
+         case EmbySearchType::id:
+            return item.Id == name;
+         case EmbySearchType::path:
+            return item.Path == name;
+         case EmbySearchType::name:
+            return item.Name == name;
+         default:
+            return false;
          }
       });
 
@@ -299,20 +303,18 @@ namespace warp
 
    bool EmbyApi::GetWatchedStatus(std::string_view userId, std::string_view itemId)
    {
-      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items", API_USERS, userId), {
-         {IDS, itemId},
-         {"IsPlayed", "true"}
-      });
+      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items", API_USERS, userId), {{IDS, itemId}, {"IsPlayed", "true"}});
 
       auto res = Get(apiPath, pimpl_->headers_);
       if (!IsHttpSuccess(__func__, res))
          return false;
 
       JsonTotalRecordCount response;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (response, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
       {
          LogWarning("{} - JSON Parse Error: {}",
-                    __func__, glz::format_error(ec, res.body));
+                    __func__,
+                    glz::format_error(ec, res.body));
          return false;
       }
 
@@ -328,20 +330,18 @@ namespace warp
 
    std::optional<EmbyPlayState> EmbyApi::GetPlayState(std::string_view userId, std::string_view itemId)
    {
-      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items", API_USERS, userId), {
-         {IDS, itemId},
-         {FIELDS, "Path,UserDataLastPlayedDate,UserDataPlayCount"}
-      });
+      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items", API_USERS, userId), {{IDS, itemId}, {FIELDS, "Path,UserDataLastPlayedDate,UserDataPlayCount"}});
 
       auto res = Get(apiPath, pimpl_->headers_);
       if (!IsHttpSuccess(__func__, res))
          return std::nullopt;
 
       JsonEmbyPlayStates response;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (response, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
       {
          LogWarning("{} - JSON Parse Error: {}",
-                    __func__, glz::format_error(ec, res.body));
+                    __func__,
+                    glz::format_error(ec, res.body));
          return std::nullopt;
       }
 
@@ -362,10 +362,7 @@ namespace warp
 
    bool EmbyApi::SetPlayState(std::string_view userId, std::string_view itemId, int64_t positionTicks, std::string_view dateTimeStr)
    {
-      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items/{}/UserData", API_USERS, userId, itemId), {
-         {"PlaybackPositionTicks", std::to_string(positionTicks)},
-         {"LastPlayedDate", dateTimeStr}
-      });
+      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items/{}/UserData", API_USERS, userId, itemId), {{"PlaybackPositionTicks", std::to_string(positionTicks)}, {"LastPlayedDate", dateTimeStr}});
       auto res = Post(apiPath, pimpl_->headers_);
       return IsHttpSuccess(__func__, res);
    }
@@ -378,8 +375,7 @@ namespace warp
    std::optional<EmbyPlaylist> EmbyApi::GetPlaylist(std::string_view name)
    {
       static const HttpParams apiParams = {
-         {INCLUDE_ITEM_TYPES, "Playlist"}
-      };
+         {INCLUDE_ITEM_TYPES, "Playlist"}};
       auto item = GetItem(EmbySearchType::name, name, apiParams);
       if (!item.has_value())
          return std::nullopt;
@@ -390,10 +386,11 @@ namespace warp
 
       // Parse the entire "Items" array directly into our struct
       JsonEmbyPlaylistItemsResponse response;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (response, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
       {
          LogWarning("{} - JSON Parse Error: {}",
-                    __func__, glz::format_error(ec, res.body));
+                    __func__,
+                    glz::format_error(ec, res.body));
          return std::nullopt;
       }
 
@@ -405,10 +402,9 @@ namespace warp
       returnPlaylist.items.reserve(response.Items.size());
       std::ranges::transform(response.Items, std::back_inserter(returnPlaylist.items), [](auto& item) {
          return EmbyPlaylistItem{
-             std::move(item.Name),
-             std::move(item.Id),
-             std::move(item.PlaylistItemId)
-         };
+            std::move(item.Name),
+            std::move(item.Id),
+            std::move(item.PlaylistItemId)};
       });
 
       return returnPlaylist;
@@ -416,11 +412,7 @@ namespace warp
 
    void EmbyApi::CreatePlaylist(std::string_view name, const std::vector<std::string>& itemIds)
    {
-      const auto apiPath = BuildApiParamsPath(API_PLAYLISTS, {
-         {NAME, name},
-         {IDS, BuildCommaSeparatedList(itemIds)},
-         {MEDIA_TYPE, MOVIES}
-      });
+      const auto apiPath = BuildApiParamsPath(API_PLAYLISTS, {{NAME, name}, {IDS, BuildCommaSeparatedList(itemIds)}, {MEDIA_TYPE, MOVIES}});
 
       auto res = Post(apiPath, pimpl_->headers_);
       IsHttpSuccess(__func__, res);
@@ -428,9 +420,7 @@ namespace warp
 
    bool EmbyApi::AddPlaylistItems(std::string_view playlistId, const std::vector<std::string>& addIds)
    {
-      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items", API_PLAYLISTS, playlistId), {
-         {IDS, BuildCommaSeparatedList(addIds)}
-      });
+      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items", API_PLAYLISTS, playlistId), {{IDS, BuildCommaSeparatedList(addIds)}});
 
       auto res = Post(apiPath, pimpl_->headers_);
       return IsHttpSuccess(__func__, res);
@@ -438,9 +428,7 @@ namespace warp
 
    bool EmbyApi::RemovePlaylistItems(std::string_view playlistId, const std::vector<std::string>& removeIds)
    {
-      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items/Delete", API_PLAYLISTS, playlistId), {
-         {ENTRY_IDS, BuildCommaSeparatedList(removeIds)}
-      });
+      const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items/Delete", API_PLAYLISTS, playlistId), {{ENTRY_IDS, BuildCommaSeparatedList(removeIds)}});
 
       auto res = Post(apiPath, pimpl_->headers_);
       return IsHttpSuccess(__func__, res);
@@ -460,14 +448,13 @@ namespace warp
          {RECURSIVE, "true"},
          {INCLUDE_ITEM_TYPES, "Movie,Series"},
          {IS_MISSING, "false"},
-         {PARENT_ID, libId}
-      };
+         {PARENT_ID, libId}};
       auto res = Get(BuildApiParamsPath(API_ITEMS, apiParams), pimpl_->headers_);
       if (!IsHttpSuccess(__func__, res))
          return {};
 
       JsonEmbyItemsResponse response;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (response, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
       {
          LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
          return {};
@@ -483,8 +470,7 @@ namespace warp
          returnVector.emplace_back(EmbyItemBackdropImages{
             .name = std::move(item.Name),
             .id = std::move(item.Id),
-            .backdropImageIds = std::move(item.BackdropImageTags)
-         });
+            .backdropImageIds = std::move(item.BackdropImageTags)});
       }
 
       return returnVector;
@@ -498,7 +484,7 @@ namespace warp
          return {};
 
       std::vector<JsonEmbyBackdrop> response;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (response, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
       {
          LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
          return {};
@@ -511,8 +497,7 @@ namespace warp
          {
             returnBackdrops.emplace_back(EmbyBackdrop{
                .index = *image.ImageIndex,
-               .path = std::move(image.Path)
-            });
+               .path = std::move(image.Path)});
          }
       }
 
@@ -533,8 +518,7 @@ namespace warp
          {RECURSIVE, "true"},
          {"ImageRefreshMode", "Default"},
          {"ReplaceAllImages", "false"},
-         {"ReplaceAllMetadata", "false"}
-      };
+         {"ReplaceAllMetadata", "false"}};
       const auto apiPath = BuildApiParamsPath(std::format("/Items/{}/Refresh", libraryId), apiParams);
 
       auto res = Post(apiPath, pimpl_->headers_);
@@ -550,15 +534,15 @@ namespace warp
          jsonUpdate.Path = update.path.generic_string();
          switch (update.type)
          {
-            case EmbyUpdateType::MODIFIED:
-               jsonUpdate.UpdateType = "Modified";
-               break;
-            case EmbyUpdateType::DELETED:
-               jsonUpdate.UpdateType = "Deleted";
-               break;
-            default:
-               jsonUpdate.UpdateType = "Created";
-               break;
+         case EmbyUpdateType::MODIFIED:
+            jsonUpdate.UpdateType = "Modified";
+            break;
+         case EmbyUpdateType::DELETED:
+            jsonUpdate.UpdateType = "Deleted";
+            break;
+         default:
+            jsonUpdate.UpdateType = "Created";
+            break;
          }
          jsonUpdates.Updates.emplace_back(std::move(jsonUpdate));
       }
@@ -654,8 +638,7 @@ namespace warp
          {RECURSIVE, "true"},
          {INCLUDE_ITEM_TYPES, "Movie,Episode"},
          {FIELDS, "Path,DateCreated"},
-         {IS_MISSING, "false"}
-      };
+         {IS_MISSING, "false"}};
       const auto apiPath = parent_.BuildApiParamsPath(API_ITEMS, apiParams);
 
       auto res = parent_.Get(apiPath, headers_);
@@ -663,10 +646,11 @@ namespace warp
          return;
 
       JsonPathRebuildItems response;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (response, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
       {
          parent_.LogWarning("{} - JSON Parse Error: {}",
-                           __func__, glz::format_error(ec, res.body)); // Log the start of the string for context
+                            __func__,
+                            glz::format_error(ec, res.body)); // Log the start of the string for context
          return;
       }
 
@@ -716,10 +700,11 @@ namespace warp
          return;
 
       std::vector<JsonEmbyLibrary> jsonLibraries;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (jsonLibraries, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(jsonLibraries, res.body))
       {
          parent_.LogWarning("{} - JSON Parse Error: {}",
-                           __func__, glz::format_error(ec, res.body));
+                            __func__,
+                            glz::format_error(ec, res.body));
          return;
       }
 
@@ -751,10 +736,11 @@ namespace warp
 
       // Parse into a vector of our minimal user structs
       std::vector<JsonEmbyUser> users;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (users, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(users, res.body))
       {
          parent_.LogWarning("{} - JSON Parse Error: {}",
-                            __func__, glz::format_error(ec, res.body));
+                            __func__,
+                            glz::format_error(ec, res.body));
          return;
       }
 
@@ -791,8 +777,7 @@ namespace warp
          {RECURSIVE, "true"},
          {INCLUDE_ITEM_TYPES, "Movie,Episode"},
          {"MinDateCreated", timeToSearch},
-         {FIELDS, "Path,DateCreated"}
-      };
+         {FIELDS, "Path,DateCreated"}};
       const auto apiPath = parent_.BuildApiParamsPath(API_ITEMS, apiParams);
 
       auto res = parent_.Get(apiPath, headers_);
@@ -800,17 +785,18 @@ namespace warp
          return;
 
       JsonPathRebuildItems response;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (response, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
       {
          parent_.LogWarning("{} - JSON Parse Error: {}",
-                            __func__, glz::format_error(ec, res.body)); // Log the start of the string for context
+                            __func__,
+                            glz::format_error(ec, res.body)); // Log the start of the string for context
          return;
       }
 
       if (response.Items.empty())
          return;
 
-      // There are items to add aquire the lock
+      // There are items to add acquire the lock
       std::unique_lock lock(dataLock_);
 
       std::string latestUpdateTimestamp = lastSyncTimestamp_;
@@ -852,4 +838,4 @@ namespace warp
       if (enableCachePaths_)
          UpdateCachePaths(forceRefresh);
    }
-}
+} // namespace warp

@@ -1,8 +1,6 @@
 #pragma once
 
 #include <glaze/core/common.hpp>
-
-#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
@@ -20,15 +18,15 @@ namespace warp
 
       struct glaze
       {
-         // Glaze knows how to handle chrono types automatically
+         // clang-format off
          static constexpr auto value = glz::object(
             "NowPlayingItemName", &JsonJellystatHistoryItem::name,
             "NowPlayingItemId", &JsonJellystatHistoryItem::id,
             "UserName", &JsonJellystatHistoryItem::user,
             "ActivityDateInserted", &JsonJellystatHistoryItem::watchTime,
             "SeriesName", &JsonJellystatHistoryItem::seriesName,
-            "EpisodeId", &JsonJellystatHistoryItem::episodeId
-         );
+            "EpisodeId", &JsonJellystatHistoryItem::episodeId);
+         // clang-format on
       };
    };
 
@@ -38,10 +36,10 @@ namespace warp
 
       struct glaze
       {
-         // Glaze knows how to handle chrono types automatically
+         // clang-format off
          static constexpr auto value = glz::object(
-            "results", &JsonJellystatHistoryItems::items
-         );
+            "results", &JsonJellystatHistoryItems::items);
+         // clang-format on
       };
    };
-}
+} // namespace warp

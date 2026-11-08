@@ -5,12 +5,11 @@
 #include "log-apprise-sync.h"
 #include "log-gotify-sync.h"
 
+#include <filesystem>
 #include <spdlog/async.h>
 #include <spdlog/async_logger.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-
-#include <filesystem>
 #include <string>
 
 namespace warp
@@ -21,19 +20,19 @@ namespace warp
       {
          switch (level)
          {
-            case LogType::TRACE:
-               return spdlog::level::trace;
-            case LogType::WARN:
-               return spdlog::level::warn;
-            case LogType::ERR:
-               return spdlog::level::err;
-            case LogType::CRITICAL:
-               return spdlog::level::critical;
-            default:
-               return spdlog::level::info;
+         case LogType::TRACE:
+            return spdlog::level::trace;
+         case LogType::WARN:
+            return spdlog::level::warn;
+         case LogType::ERR:
+            return spdlog::level::err;
+         case LogType::CRITICAL:
+            return spdlog::level::critical;
+         default:
+            return spdlog::level::info;
          }
       }
-   }
+   } // namespace
 
    struct Logger::Impl
    {
@@ -63,7 +62,8 @@ namespace warp
       traceEnabled = true;
 #else
 
-      if (std::getenv("WARP_LOG_TRACE")) traceEnabled = true;
+      if (std::getenv("WARP_LOG_TRACE"))
+         traceEnabled = true;
 #endif
       if (traceEnabled)
       {
@@ -99,8 +99,7 @@ namespace warp
          auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(p.string(), max_size, max_files);
          fileSink->set_formatter(std::make_unique<AnsiiRemoveFormatter>());
          pimpl_->logger_->sinks().push_back(fileSink);
-      }
-      catch (const std::exception& e)
+      } catch (const std::exception& e)
       {
          pimpl_->logger_->warn("Failed to initialize file logging {}: {}", p.string(), e.what());
       }
@@ -140,6 +139,5 @@ namespace warp
    bool Logger::ShouldLog(LogType level)
    {
       return pimpl_->logger_->should_log(ToSpdLogLevel(level));
-
    }
-}
+} // namespace warp

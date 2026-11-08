@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
-#include <vector>
 
 namespace warp
 {
@@ -50,4 +49,4 @@ namespace warp
    {
       bool enableCachePaths{false};
    };
-}
+} // namespace warp

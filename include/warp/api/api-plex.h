@@ -63,4 +63,4 @@ namespace warp
       friend struct PlexApiImpl;
       std::unique_ptr<PlexApiImpl> pimpl_;
    };
-}
+} // namespace warp

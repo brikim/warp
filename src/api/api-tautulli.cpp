@@ -5,9 +5,8 @@
 #include "warp/log/log-utils.h"
 #include "warp/utils.h"
 
-#include <glaze/glaze.hpp>
-
 #include <format>
+#include <glaze/glaze.hpp>
 #include <shared_mutex>
 
 namespace warp
@@ -27,9 +26,8 @@ namespace warp
       constexpr std::string_view USER("user");
       constexpr std::string_view INCLUDE_ACTIVITY("include_activity");
       constexpr std::string_view AFTER("after");
-      constexpr std::string_view SEARCH("search");
       constexpr std::string_view SECTION_ID("section_id");
-   }
+   } // namespace
 
    struct TautulliApi::TautulliApiImpl
    {
@@ -67,21 +65,21 @@ namespace warp
    {
       headers_ = {
          {"User-Agent", std::format("{}/{}", appName, version)},
-         {"Accept", APPLICATION_JSON}
-      };
+         {"Accept", APPLICATION_JSON}};
 
       RefreshCache(true);
    }
 
    TautulliApi::TautulliApi(std::string_view appName, std::string_view version, const ServerConfig& serverConfig)
       : ApiBase(ApiBaseData{.name = serverConfig.serverName,
-            .url = serverConfig.trackerUrl,
-            .apiKey = serverConfig.trackerApiKey,
-            .className = "TautulliApi",
-            .ansiiCode = ANSI_CODE_TAUTULLI,
-            .prettyName = GetServerName(GetFormattedTautulli(), serverConfig.serverName)})
+                            .url = serverConfig.trackerUrl,
+                            .apiKey = serverConfig.trackerApiKey,
+                            .className = "TautulliApi",
+                            .ansiiCode = ANSI_CODE_TAUTULLI,
+                            .prettyName = GetServerName(GetFormattedTautulli(), serverConfig.serverName)})
       , pimpl_(std::make_unique<TautulliApiImpl>(*this, appName, version))
-   {}
+   {
+   }
 
    TautulliApi::~TautulliApi() = default;
 
@@ -92,12 +90,12 @@ namespace warp
       auto& quickCheck = tasks.emplace_back();
       quickCheck.name = std::format("{} - Refresh Cache Quick", GetPrettyName());
       quickCheck.cronExpression = GetNextCronQuickTime();
-      quickCheck.func = [this]() {pimpl_->RefreshCache(false); };
+      quickCheck.func = [this]() { pimpl_->RefreshCache(false); };
 
       auto& fullUpdate = tasks.emplace_back();
       fullUpdate.name = std::format("{} - Settings Update", GetPrettyName());
       fullUpdate.cronExpression = GetNextCronFullTime();
-      fullUpdate.func = [this]() {pimpl_->RefreshCache(true); };
+      fullUpdate.func = [this]() { pimpl_->RefreshCache(true); };
 
       return tasks;
    }
@@ -133,10 +131,11 @@ namespace warp
       }
 
       JsonTautulliResponse<JsonTautulliServerInfo> serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
          LogWarning("{} - JSON Parse Error: {}",
-                    __func__, glz::format_error(ec, res.body));
+                    __func__,
+                    glz::format_error(ec, res.body));
          return std::nullopt;
       }
 
@@ -174,8 +173,7 @@ namespace warp
       HttpParams params = {
          GetCmdParam(CMD_GET_HISTORY),
          {INCLUDE_ACTIVITY, "0"},
-         {USER, user}
-      };
+         {USER, user}};
       params.reserve(params.size() + extraParams.size());
       params.insert(params.end(), extraParams.begin(), extraParams.end());
 
@@ -184,10 +182,11 @@ namespace warp
          return std::nullopt;
 
       JsonTautulliResponse<JsonTautulliHistoryData> serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
          parent_.LogWarning("{} - JSON Parse Error: {}",
-                           __func__, glz::format_error(ec, res.body));
+                            __func__,
+                            glz::format_error(ec, res.body));
          return std::nullopt;
       }
 
@@ -201,14 +200,13 @@ namespace warp
             continue;
 
          history.items.emplace_back(TautulliHistoryItem{
-             .name = std::move(item.title),
-             .fullName = std::move(item.full_title),
-             .id = std::format("{}", item.rating_key),
-             .watched = item.percent_complete >= watchedPercent,
-             .timeWatchedEpoch = item.stopped,
-             .playbackPercentage = item.percent_complete,
-             .live = item.live != 0
-         });
+            .name = std::move(item.title),
+            .fullName = std::move(item.full_title),
+            .id = std::format("{}", item.rating_key),
+            .watched = item.percent_complete >= watchedPercent,
+            .timeWatchedEpoch = item.stopped,
+            .playbackPercentage = item.percent_complete,
+            .live = item.live != 0});
       }
 
       return history.items.empty() ? std::nullopt : std::make_optional(history);
@@ -218,9 +216,7 @@ namespace warp
                                                                            std::string_view dateForHistory,
                                                                            int64_t epochHistoryTime)
    {
-      return pimpl_->GetWatchHistory(user, epochHistoryTime, {
-         {AFTER, dateForHistory}
-      });
+      return pimpl_->GetWatchHistory(user, epochHistoryTime, {{AFTER, dateForHistory}});
    }
 
    std::optional<TautulliHistoryItems> TautulliApi::GetWatchHistoryForUserAndLibrary(std::string_view user,
@@ -228,10 +224,7 @@ namespace warp
                                                                                      std::string_view dateForHistory,
                                                                                      int64_t epochHistoryTime)
    {
-      return pimpl_->GetWatchHistory(user, epochHistoryTime, {
-         {AFTER, dateForHistory},
-         {SECTION_ID, libraryId}
-      });
+      return pimpl_->GetWatchHistory(user, epochHistoryTime, {{AFTER, dateForHistory}, {SECTION_ID, libraryId}});
    }
 
    bool TautulliApi::TautulliApiImpl::RefreshMonitoringData()
@@ -239,19 +232,20 @@ namespace warp
       parent_.LogTrace("Updating Monitoring Data");
 
       auto apiPath = parent_.BuildApiParamsPath("", {
-         GetCmdParam(CMD_GET_SETTINGS),
-          {"key", "Monitoring"},
-      });
+                                                       GetCmdParam(CMD_GET_SETTINGS),
+                                                       {"key", "Monitoring"},
+                                                    });
 
       auto res = parent_.Get(apiPath, headers_);
       if (!parent_.IsHttpSuccess(__func__, res, false))
          return false;
 
       JsonTautulliResponse<JsonTautulliMonitorInfo> serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
          parent_.LogWarning("{} - JSON Parse Error: {}",
-                           __func__, glz::format_error(ec, res.body));
+                            __func__,
+                            glz::format_error(ec, res.body));
          return false;
       }
 
@@ -267,20 +261,18 @@ namespace warp
          return;
 
       JsonTautulliResponse<std::vector<JsonUserInfo>> serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
          parent_.LogWarning("{} - JSON Parse Error: {}",
-                            __func__, glz::format_error(ec, res.body));
+                            __func__,
+                            glz::format_error(ec, res.body));
          return;
       }
 
       NameToUserMap workingUsers;
       workingUsers.reserve(serverResponse.response.data.size());
       std::ranges::for_each(serverResponse.response.data, [&](auto& user) {
-         workingUsers.emplace(std::move(user.username), TautulliUserInfo{
-            .id = user.user_id,
-            .friendlyName = std::move(user.friendly_name)
-         });
+         workingUsers.emplace(std::move(user.username), TautulliUserInfo{.id = user.user_id, .friendlyName = std::move(user.friendly_name)});
       });
 
       if (!workingUsers.empty())
@@ -313,4 +305,4 @@ namespace warp
       if (forceRefresh || GetUserMapEmpty())
          RefreshUserData();
    }
-}
+} // namespace warp

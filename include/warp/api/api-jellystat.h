@@ -31,4 +31,4 @@ namespace warp
       friend struct JellystatApiImpl;
       std::unique_ptr<JellystatApiImpl> pimpl_;
    };
-}
+} // namespace warp

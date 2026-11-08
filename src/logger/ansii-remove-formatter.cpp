@@ -25,4 +25,4 @@ namespace warp
    {
       return spdlog::details::make_unique<AnsiiRemoveFormatter>();
    }
-}
+} // namespace warp

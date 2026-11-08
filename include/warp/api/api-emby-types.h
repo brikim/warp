@@ -87,4 +87,4 @@ namespace warp
       std::filesystem::path path;
       EmbyUpdateType type;
    };
-}
+} // namespace warp

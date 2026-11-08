@@ -20,4 +20,4 @@ namespace warp
    {
       std::vector<JellystatHistoryItem> items;
    };
-}
+} // namespace warp

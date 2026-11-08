@@ -16,9 +16,13 @@ namespace warp
    template <typename T>
    inline std::string GetTag(std::string_view tag, const T& value)
    {
-      // std::format will handle converting the value to a string 
+      // std::format will handle converting the value to a string
       // regardless of whether it is a string, int, or bool.
-      return std::format("{}{}{}[{}]", ANSI_CODE_TAG, tag, ANSI_CODE_LOG, value);
+      return std::format("{}{}{}[{}]",
+                         ANSI_CODE_TAG,
+                         tag,
+                         ANSI_CODE_LOG,
+                         value);
    }
 
    template <arithmetic T>
@@ -26,7 +30,10 @@ namespace warp
    {
       // Construct the dynamic format string: e.g., "{}{}{}[{:.2f}]"
       std::string dynamic_fmt = std::format("{}{}{}[{{:{}}}]",
-                                            ANSI_CODE_TAG, tag, ANSI_CODE_LOG, fmt);
+                                            ANSI_CODE_TAG,
+                                            tag,
+                                            ANSI_CODE_LOG,
+                                            fmt);
 
       return std::vformat(dynamic_fmt, std::make_format_args(value));
    }
@@ -75,16 +82,16 @@ namespace warp
    {
       switch (type)
       {
-         case ApiType::PLEX:
-            return GetFormattedPlex();
-         case ApiType::EMBY:
-            return GetFormattedEmby();
-         case ApiType::TAUTULLI:
-            return GetFormattedTautulli();
-         case ApiType::JELLYSTAT:
-            return GetFormattedJellystat();
-         default:
-            return ANSI_FORMATTED_UNKNOWN;
+      case ApiType::PLEX:
+         return GetFormattedPlex();
+      case ApiType::EMBY:
+         return GetFormattedEmby();
+      case ApiType::TAUTULLI:
+         return GetFormattedTautulli();
+      case ApiType::JELLYSTAT:
+         return GetFormattedJellystat();
+      default:
+         return ANSI_FORMATTED_UNKNOWN;
       }
    }
-}
+} // namespace warp

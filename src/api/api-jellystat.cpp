@@ -5,9 +5,8 @@
 #include "warp/log/log-utils.h"
 #include "warp/utils.h"
 
-#include <glaze/glaze.hpp>
-
 #include <format>
+#include <glaze/glaze.hpp>
 
 namespace warp
 {
@@ -17,7 +16,7 @@ namespace warp
       constexpr std::string_view API_GET_CONFIG{"/getconfig"};
       constexpr std::string_view API_GET_USER_HISTORY{"/getUserHistory"};
       constexpr std::string_view API_GET_LIBRARY_HISTORY{"/getLibraryHistory"};
-   }
+   } // namespace
 
    struct JellystatApi::JellystatApiImpl
    {
@@ -35,19 +34,19 @@ namespace warp
       headers_ = {
          {"x-api-token", std::string(parent_.GetApiKey())},
          {"Content-Type", APPLICATION_JSON},
-         {"User-Agent", std::format("{}/{}", appName, version)}
-      };
+         {"User-Agent", std::format("{}/{}", appName, version)}};
    }
 
    JellystatApi::JellystatApi(std::string_view appName, std::string_view version, const ServerConfig& serverConfig)
       : ApiBase(ApiBaseData{.name = serverConfig.serverName,
-            .url = serverConfig.trackerUrl,
-            .apiKey = serverConfig.trackerApiKey,
-            .className = "JellystatApi",
-            .ansiiCode = ANSI_CODE_JELLYSTAT,
-            .prettyName = GetServerName(GetFormattedJellystat(), serverConfig.serverName)})
+                            .url = serverConfig.trackerUrl,
+                            .apiKey = serverConfig.trackerApiKey,
+                            .className = "JellystatApi",
+                            .ansiiCode = ANSI_CODE_JELLYSTAT,
+                            .prettyName = GetServerName(GetFormattedJellystat(), serverConfig.serverName)})
       , pimpl_(std::make_unique<JellystatApiImpl>(*this, appName, version))
-   {}
+   {
+   }
 
    JellystatApi::~JellystatApi() = default;
 
@@ -76,13 +75,13 @@ namespace warp
 
    std::optional<JellystatHistoryItems> JellystatApi::JellystatApiImpl::GetWatchHistory(std::string_view apiPath, std::string_view payloadKey, std::string_view id)
    {
-      auto payload = ParamsToJson({{ payloadKey, id }});
+      auto payload = ParamsToJson({{payloadKey, id}});
       auto res = parent_.Post(parent_.BuildApiPath(apiPath), headers_, payload, APPLICATION_JSON);
       if (!parent_.IsHttpSuccess(__func__, res))
          return std::nullopt;
 
       JsonJellystatHistoryItems serverResponse;
-      if (auto ec = glz::read < glz::opts{.error_on_unknown_keys = false} > (serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
       {
          parent_.LogWarning("{} - Api: {} JSON Parse Error: {}", __func__, apiPath, glz::format_error(ec, res.body));
          return std::nullopt;
@@ -101,8 +100,7 @@ namespace warp
             .user = std::move(item.user),
             .watchTime = std::move(item.watchTime),
             .seriesName = std::move(item.seriesName),
-            .episodeId = std::move(item.episodeId)
-         });
+            .episodeId = std::move(item.episodeId)});
 
       return returnResponse;
    }
@@ -116,4 +114,4 @@ namespace warp
    {
       return pimpl_->GetWatchHistory(API_GET_LIBRARY_HISTORY, "libraryid", libraryId);
    }
-}
+} // namespace warp

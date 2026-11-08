@@ -42,4 +42,4 @@ namespace warp
       friend struct TautulliApiImpl;
       std::unique_ptr<TautulliApiImpl> pimpl_;
    };
-}
+} // namespace warp

@@ -45,4 +45,4 @@ namespace warp
       friend struct HttpClientImpl;
       std::unique_ptr<HttpClientImpl> pimpl_;
    };
-}
+} // namespace warp

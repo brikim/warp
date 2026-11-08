@@ -18,21 +18,21 @@ namespace warp
       spdlog::pattern_formatter* formatter{nullptr};
       switch (msg.level)
       {
-         case spdlog::level::info:
-            formatter = &infoFormatter_;
-            break;
-         case spdlog::level::warn:
-            formatter = &warningFormatter_;
-            break;
-         case spdlog::level::err:
-            formatter = &errorFormatter_;
-            break;
-         case spdlog::level::critical:
-            formatter = &criticalFormatter_;
-            break;
-         default:
-            formatter = &defaultFormatter_;
-            break;
+      case spdlog::level::info:
+         formatter = &infoFormatter_;
+         break;
+      case spdlog::level::warn:
+         formatter = &warningFormatter_;
+         break;
+      case spdlog::level::err:
+         formatter = &errorFormatter_;
+         break;
+      case spdlog::level::critical:
+         formatter = &criticalFormatter_;
+         break;
+      default:
+         formatter = &defaultFormatter_;
+         break;
       }
 
       // Use the normal pattern formatter to create the log message with no ansii codes
@@ -43,4 +43,4 @@ namespace warp
    {
       return spdlog::details::make_unique<AnsiiFormatter>();
    }
-}
+} // namespace warp

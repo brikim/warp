@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glaze/core/common.hpp>
-
 #include <string>
 #include <vector>
 
@@ -16,12 +15,13 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
             "server_id", &JsonTracearrServer::id,
             "server_name", &JsonTracearrServer::name,
             "server_type", &JsonTracearrServer::type,
-            "version", &JsonTracearrServer::version
-         );
+            "version", &JsonTracearrServer::version);
+         // clang-format on
       };
    };
 
@@ -32,10 +32,11 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
             "tracearr_version", &JsonTracearrServers::version,
-            "data", &JsonTracearrServers::servers
-         );
+            "data", &JsonTracearrServers::servers);
+         // clang-format on
       };
    };
 
@@ -46,10 +47,11 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
             "id", &JsonTracearrHistoryUser::id,
-            "username", &JsonTracearrHistoryUser::userName
-         );
+            "username", &JsonTracearrHistoryUser::userName);
+         // clang-format on
       };
    };
 
@@ -73,6 +75,7 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          // Glaze knows how to handle chrono types automatically
          static constexpr auto value = glz::object(
             "server_id", &JsonTracearrHistoryItem::serverId,
@@ -89,8 +92,8 @@ namespace warp
             "stopped_at", &JsonTracearrHistoryItem::stoppedAt,
             "watched", &JsonTracearrHistoryItem::watched,
             "rating_key", &JsonTracearrHistoryItem::serverRatingKey,
-            "user", &JsonTracearrHistoryItem::user
-         );
+            "user", &JsonTracearrHistoryItem::user);
+         // clang-format on
       };
    };
 
@@ -100,10 +103,10 @@ namespace warp
 
       struct glaze
       {
-         // Glaze knows how to handle chrono types automatically
+         // clang-format off
          static constexpr auto value = glz::object(
-            "data", &JsonTracearrHistoryItems::items
-         );
+            "data", &JsonTracearrHistoryItems::items);
+         // clang-format on
       };
    };
 
@@ -117,13 +120,14 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-               "server_id", &JsonTracearrUserAccount::serverId,
-               "server_type", &JsonTracearrUserAccount::serverType,
-               "server_user_id", &JsonTracearrUserAccount::serverUserId,
-               "external_user_id", &JsonTracearrUserAccount::externalUserId,
-               "username", &JsonTracearrUserAccount::externalUserName
-         );
+            "server_id", &JsonTracearrUserAccount::serverId,
+            "server_type", &JsonTracearrUserAccount::serverType,
+            "server_user_id", &JsonTracearrUserAccount::serverUserId,
+            "external_user_id", &JsonTracearrUserAccount::externalUserId,
+            "username", &JsonTracearrUserAccount::externalUserName);
+         // clang-format on
       };
    };
 
@@ -136,12 +140,13 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-               "id", &JsonTracearrUser::id,
-               "username", &JsonTracearrUser::name,
-               "identity_name", &JsonTracearrUser::tracearrName,
-               "accounts", &JsonTracearrUser::accounts
-         );
+            "id", &JsonTracearrUser::id,
+            "username", &JsonTracearrUser::name,
+            "identity_name", &JsonTracearrUser::tracearrName,
+            "accounts", &JsonTracearrUser::accounts);
+         // clang-format on
       };
    };
 
@@ -151,9 +156,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-            "data", &JsonTracearrUsers::users
-         );
+            "data", &JsonTracearrUsers::users);
+         // clang-format on
       };
    };
-}
+} // namespace warp

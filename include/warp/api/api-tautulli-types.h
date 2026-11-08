@@ -29,4 +29,4 @@ namespace warp
    {
       std::vector<TautulliHistoryItem> items;
    };
-}
+} // namespace warp

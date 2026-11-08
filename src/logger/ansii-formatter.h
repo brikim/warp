@@ -22,4 +22,4 @@ namespace warp
       spdlog::pattern_formatter criticalFormatter_;
       spdlog::pattern_formatter defaultFormatter_;
    };
-}
+} // namespace warp

@@ -22,4 +22,4 @@ namespace warp
       class CronSchedulerImpl;
       std::unique_ptr<CronSchedulerImpl> pimpl_;
    };
-}
+} // namespace warp

@@ -56,4 +56,4 @@ namespace warp
       std::string message_title;
       int32_t priority{0};
    };
-}
+} // namespace warp

@@ -46,4 +46,4 @@ namespace warp
          return std::filesystem::hash_value(p);
       }
    };
-}
+} // namespace warp

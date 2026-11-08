@@ -60,14 +60,14 @@ namespace warp
    template <typename StringT>
    inline bool ContainsSeason(const StringT& str)
    {
-      if (str.size() < 6) return false;
+      if (str.size() < 6)
+         return false;
 
       auto isSeasonMatch = [](auto ch, char target) {
          return (ch == target) || (ch == (target - 32));
       };
       constexpr std::string_view target = "season";
-      auto it = std::search(str.begin(), str.end(), target.begin(), target.end(),
-          [&isSeasonMatch](auto a, char b) {
+      auto it = std::search(str.begin(), str.end(), target.begin(), target.end(), [&isSeasonMatch](auto a, char b) {
          return isSeasonMatch(a, b);
       });
 
@@ -94,7 +94,8 @@ namespace warp
 
    inline std::filesystem::path GetDisplayFolder(const std::filesystem::path& path)
    {
-      if (path.empty()) return "";
+      if (path.empty())
+         return "";
 
       std::filesystem::path p(path);
       if (p.has_relative_path() && p.filename().empty())
@@ -109,7 +110,8 @@ namespace warp
       if (ContainsSeason(folderPath.filename().native()) && folderPath.has_parent_path())
       {
          result = folderPath.parent_path().filename() / folderPath.filename();
-         if (hasFile) result /= p.filename();
+         if (hasFile)
+            result /= p.filename();
       }
       else if (hasFile)
       {
@@ -129,7 +131,8 @@ namespace warp
       std::stringstream ss(isoString);
 
       std::chrono::from_stream(ss, "%FT%TZ", tp);
-      if (ss.fail()) return std::nullopt;
+      if (ss.fail())
+         return std::nullopt;
       return tp;
    }
-}
+} // namespace warp

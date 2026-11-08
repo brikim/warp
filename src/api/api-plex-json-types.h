@@ -1,9 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
-
 #include <glaze/glaze.hpp>
+#include <string>
 
 namespace warp
 {
@@ -13,9 +12,10 @@ namespace warp
    {
       std::filesystem::path file;
 
+      // clang-format off
       static constexpr auto value = glz::object(
-            "file", &JsonPlexPart::file
-      );
+         "file", &JsonPlexPart::file);
+      // clang-format on
    };
    struct JsonPlexMedia
    {
@@ -23,9 +23,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-            "Part", &JsonPlexMedia::part
-         );
+            "Part", &JsonPlexMedia::part);
+         // clang-format on
       };
    };
    // } File Part Structs
@@ -42,13 +43,14 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
             "title", &JsonPlexLibrarySectionItemData::title,
             "ratingKey", &JsonPlexLibrarySectionItemData::ratingKey,
             "key", &JsonPlexLibrarySectionItemData::key,
             "updatedAt", &JsonPlexLibrarySectionItemData::updatedAt,
-            "Media", &JsonPlexLibrarySectionItemData::media
-         );
+            "Media", &JsonPlexLibrarySectionItemData::media);
+         // clang-format on
       };
    };
    struct JsonPlexLibrarySectionResult
@@ -58,10 +60,11 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
             "totalSize", &JsonPlexLibrarySectionResult::totalSize,
-            "Metadata", &JsonPlexLibrarySectionResult::data
-         );
+            "Metadata", &JsonPlexLibrarySectionResult::data);
+         // clang-format on
       };
    };
    // } Library Section Item Structs
@@ -78,13 +81,14 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
             "title", &JsonPlexLibrary::title,
             "key", &JsonPlexLibrary::id,
-            "type", &JsonPlexLibrary::type,
+            "type",  &JsonPlexLibrary::type,
             "agent", &JsonPlexLibrary::agent,
-            "contentChangedAt", &JsonPlexLibrary::contentChangedAt
-         );
+            "contentChangedAt", &JsonPlexLibrary::contentChangedAt);
+         // clang-format on
       };
    };
    struct JsonPlexLibraryResult
@@ -93,9 +97,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-            "Directory", &JsonPlexLibraryResult::libraries
-         );
+            "Directory", &JsonPlexLibraryResult::libraries);
+         // clang-format on
       };
    };
    // } Library Structs
@@ -114,6 +119,7 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
             "ratingKey", &JsonPlexMetadata::ratingKey,
             "title", &JsonPlexMetadata::title,
@@ -121,8 +127,8 @@ namespace warp
             "duration", &JsonPlexMetadata::duration,
             "viewCount", &JsonPlexMetadata::viewCount,
             "viewOffset", &JsonPlexMetadata::viewOffset,
-            "Media", &JsonPlexMetadata::media
-         );
+            "Media", &JsonPlexMetadata::media);
+         // clang-format on
       };
    };
    struct JsonPlexMetadataContainer
@@ -132,10 +138,11 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
             "librarySectionTitle", &JsonPlexMetadataContainer::library,
-            "Metadata", &JsonPlexMetadataContainer::data
-         );
+            "Metadata", &JsonPlexMetadataContainer::data);
+         // clang-format on
       };
    };
    // } Meta data structs
@@ -148,9 +155,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-            "name", &JsonPlexServerName::name
-         );
+            "name", &JsonPlexServerName::name);
+         // clang-format on
       };
    };
    struct JsonPlexServerData
@@ -159,9 +167,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-            "Server", &JsonPlexServerData::data
-         );
+            "Server", &JsonPlexServerData::data);
+         // clang-format on
       };
    };
    // } Server name structs
@@ -173,9 +182,10 @@ namespace warp
 
       struct glaze
       {
+         // clang-format off
          static constexpr auto value = glz::object(
-            "MediaContainer", &JsonPlexResponse::response
-         );
+            "MediaContainer", &JsonPlexResponse::response);
+         // clang-format on
       };
    };
-}
+} // namespace warp

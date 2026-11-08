@@ -1,6 +1,5 @@
 #include "warp/api/api-base.h"
 
-#include "http/http-utils.h"
 #include "warp/http/http-client.h"
 #include "warp/log/log-utils.h"
 #include "warp/types.h"
@@ -19,7 +18,7 @@ namespace warp
       constexpr int32_t CRON_FULL_CHECK_MINUTE_START{31};
       constexpr int32_t CRON_FULL_CHECK_MINUTE_INCREMENT{2};
       constexpr int32_t CRON_FULL_CHECK_HOUR{3};
-   }
+   } // namespace
 
    struct ApiBase::ApiBaseImpl
    {
@@ -36,12 +35,14 @@ namespace warp
       , prettyName_(data.prettyName)
       , apiKey_(data.apiKey)
       , client_(data.url)
-   {}
+   {
+   }
 
    ApiBase::ApiBase(const ApiBaseData& data)
       : Base(data.className, data.ansiiCode, data.name)
       , pimpl_(std::make_unique<ApiBaseImpl>(data))
-   {}
+   {
+   }
 
    ApiBase::~ApiBase() = default;
 
@@ -115,7 +116,8 @@ namespace warp
          return true;
       }
 
-      if (log) LogWarning("{} - HTTP error {}", name, warp::GetTag("error", *errorStr));
+      if (log)
+         LogWarning("{} - HTTP error {}", name, warp::GetTag("error", *errorStr));
 
       return false;
    }
@@ -139,4 +141,4 @@ namespace warp
    {
       return pimpl_->client_.Delete(path, headers);
    }
-}
+} // namespace warp

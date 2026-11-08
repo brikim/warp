@@ -23,35 +23,35 @@ namespace warp
       void InitApprise(const AppriseLoggingConfig& config);
       void InitGotify(const GotifyLoggingConfig& config);
 
-      template<typename... Args>
-      void Trace(std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void Trace(std::format_string<Args...> fmt, Args&&... args);
 
-      template<typename... Args>
-      void TraceWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void TraceWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args);
 
-      template<typename... Args>
-      void Info(std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void Info(std::format_string<Args...> fmt, Args&&... args);
 
-      template<typename... Args>
-      void InfoWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void InfoWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args);
 
-      template<typename... Args>
-      void Warning(std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void Warning(std::format_string<Args...> fmt, Args&&... args);
 
-      template<typename... Args>
-      void WarningWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void WarningWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args);
 
-      template<typename... Args>
-      void Error(std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void Error(std::format_string<Args...> fmt, Args&&... args);
 
-      template<typename... Args>
-      void ErrorWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void ErrorWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args);
 
-      template<typename... Args>
-      void Critical(std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void Critical(std::format_string<Args...> fmt, Args&&... args);
 
-      template<typename... Args>
-      void CriticalWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args);
+      template <typename... Args>
+      void CriticalWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args);
 
    private:
       Logger();
@@ -64,8 +64,8 @@ namespace warp
       std::unique_ptr<Impl> pimpl_;
    };
 
-   template<typename... Args>
-   inline void Logger::Trace(std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::Trace(std::format_string<Args...> fmt, Args&&... args)
    {
       if (ShouldLog(LogType::TRACE))
       {
@@ -74,8 +74,8 @@ namespace warp
       }
    }
 
-   template<typename... Args>
-   inline void Logger::TraceWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::TraceWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args)
    {
       if (ShouldLog(LogType::TRACE))
       {
@@ -84,8 +84,8 @@ namespace warp
       }
    }
 
-   template<typename... Args>
-   inline void Logger::Info(std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::Info(std::format_string<Args...> fmt, Args&&... args)
    {
       if (ShouldLog(LogType::INFO))
       {
@@ -94,8 +94,8 @@ namespace warp
       }
    }
 
-   template<typename... Args>
-   inline void Logger::InfoWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::InfoWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args)
    {
       if (ShouldLog(LogType::INFO))
       {
@@ -104,8 +104,8 @@ namespace warp
       }
    }
 
-   template<typename... Args>
-   inline void Logger::Warning(std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::Warning(std::format_string<Args...> fmt, Args&&... args)
    {
       if (ShouldLog(LogType::WARN))
       {
@@ -114,8 +114,8 @@ namespace warp
       }
    }
 
-   template<typename... Args>
-   inline void Logger::WarningWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::WarningWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args)
    {
       if (ShouldLog(LogType::WARN))
       {
@@ -124,8 +124,8 @@ namespace warp
       }
    }
 
-   template<typename... Args>
-   inline void Logger::Error(std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::Error(std::format_string<Args...> fmt, Args&&... args)
    {
       if (ShouldLog(LogType::ERR))
       {
@@ -134,8 +134,8 @@ namespace warp
       }
    }
 
-   template<typename... Args>
-   inline void Logger::ErrorWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::ErrorWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args)
    {
       if (ShouldLog(LogType::ERR))
       {
@@ -144,17 +144,17 @@ namespace warp
       }
    }
 
-   template<typename... Args>
-   inline void Logger::Critical(std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::Critical(std::format_string<Args...> fmt, Args&&... args)
    {
       std::string msg = std::format(fmt, std::forward<Args>(args)...);
       LogInternal(LogType::CRITICAL, msg);
    }
 
-   template<typename... Args>
-   inline void Logger::CriticalWithHeader(std::string_view header, std::format_string<Args...> fmt, Args &&...args)
+   template <typename... Args>
+   inline void Logger::CriticalWithHeader(std::string_view header, std::format_string<Args...> fmt, Args&&... args)
    {
       std::string msg = std::format("{}: {}", header, std::format(fmt, std::forward<Args>(args)...));
       LogInternal(LogType::CRITICAL, msg);
    }
-}
+} // namespace warp

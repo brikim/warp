@@ -1,18 +1,17 @@
 #pragma once
 
-#include "warp/utils.h"
-
 #include "warp/http/http-client.h"
-
-#include <spdlog/sinks/base_sink.h>
+#include "warp/log/log-types.h"
+#include "warp/utils.h"
 
 #include <format>
 #include <mutex>
+#include <spdlog/sinks/base_sink.h>
 #include <string>
 
 namespace warp
 {
-   template<typename Mutex>
+   template <typename Mutex>
    class LogGotifySink : public spdlog::sinks::base_sink<Mutex>
    {
    public:
@@ -21,7 +20,8 @@ namespace warp
          , title_(config.message_title)
          , priority_{std::format("{}", config.priority)}
          , headers_{{"X-Gotify-Key", config.key}}
-      {}
+      {
+      }
 
    protected:
       void sink_it_(const spdlog::details::log_msg& msg) override
@@ -41,13 +41,13 @@ namespace warp
          HttpParams params{
             {"title", title_},
             {"message", message},
-            {"priority", priority_}
-         };
+            {"priority", priority_}};
          auto res = client_.Post("/message", headers_, params);
       }
 
       void flush_() override
-      {}
+      {
+      }
 
    private:
       HttpClient client_;
@@ -57,4 +57,4 @@ namespace warp
    };
 
    using gotify_sink_mt = LogGotifySink<std::mutex>;
-}
+} // namespace warp

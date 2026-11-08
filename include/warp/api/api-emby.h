@@ -60,7 +60,6 @@ namespace warp
       [[nodiscard]] std::optional<std::filesystem::path> GetItemPath(std::string_view id);
       [[nodiscard]] std::optional<std::string> GetIdFromPath(const std::filesystem::path& path);
 
-
    protected:
       std::string_view GetApiBase() const override;
       std::string_view GetApiTokenName() const override;
@@ -70,4 +69,4 @@ namespace warp
       friend struct EmbyApiImpl;
       std::unique_ptr<EmbyApiImpl> pimpl_;
    };
-}
+} // namespace warp

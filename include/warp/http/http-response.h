@@ -57,4 +57,4 @@ namespace warp
       std::string body;
       Error error;
    };
-}
+} // namespace warp

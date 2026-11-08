@@ -1,17 +1,16 @@
 #pragma once
 
+#include "warp/http/http-client.h"
+#include "warp/log/log-types.h"
 #include "warp/utils.h"
 
-#include "warp/http/http-client.h"
-
-#include <spdlog/sinks/base_sink.h>
-
 #include <mutex>
+#include <spdlog/sinks/base_sink.h>
 #include <string>
 
 namespace warp
 {
-   template<typename Mutex>
+   template <typename Mutex>
    class LogAppriseSink : public spdlog::sinks::base_sink<Mutex>
    {
    public:
@@ -19,7 +18,8 @@ namespace warp
          : client_(config.url)
          , key_(config.key)
          , title_(config.message_title)
-      {}
+      {
+      }
 
    protected:
       void sink_it_(const spdlog::details::log_msg& msg) override
@@ -38,13 +38,13 @@ namespace warp
 
          HttpParams params{
             {"title", title_},
-            {"body", message}
-         };
+            {"body", message}};
          auto res = client_.Post(std::format("/notify/{}", key_), params);
       }
 
       void flush_() override
-      {}
+      {
+      }
 
    private:
       HttpClient client_;
@@ -53,4 +53,4 @@ namespace warp
    };
 
    using apprise_sink_mt = LogAppriseSink<std::mutex>;
-}
+} // namespace warp

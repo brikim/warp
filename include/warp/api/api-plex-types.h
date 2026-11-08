@@ -55,4 +55,4 @@ namespace warp
    {
       std::vector<PlexSearchResult> items;
    };
-}
+} // namespace warp

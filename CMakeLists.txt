@@ -2,17 +2,16 @@ cmake_minimum_required(VERSION 3.25...3.30)
 
 # 1. SILENCE DEPRECATION WARNINGS
 set(CMAKE_POLICY_DEFAULT_CMP0000 NEW)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(warp LANGUAGES CXX C)
 
-# 2. GLOBAL SETTINGS
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Align MSVC runtime (Static vs Dynamic) for all dependencies
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
@@ -91,12 +90,14 @@ if(WIN32)
         set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64")
     endif()
 endif()
-
 find_package(OpenSSL REQUIRED)
 
 # 7. CREATE THE TARGET
 add_library(warp STATIC ${WARP_SOURCES})
 add_library(warp::warp ALIAS warp)
+
+# Explicitly export C++20 features to the target for IntelliSense indexing
+target_compile_features(warp PUBLIC cxx_std_20)
 
 # 8. APPLY TARGET PROPERTIES
 if(ipo_supported)
@@ -123,13 +124,14 @@ else()
 endif()
 
 # 10. PRECOMPILED HEADERS
-# Including heavy headers here speeds up internal warp builds
+# Clean standard header list (removes inner generator expressions that confuse Visual Studio)
 target_precompile_headers(warp PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:format>"
     "$<$<COMPILE_LANGUAGE:CXX>:string>"
     "$<$<COMPILE_LANGUAGE:CXX>:string_view>"
     "$<$<COMPILE_LANGUAGE:CXX>:vector>"
     "$<$<COMPILE_LANGUAGE:CXX>:memory>"
+    "$<$<COMPILE_LANGUAGE:CXX>:optional>"
     "$<$<COMPILE_LANGUAGE:CXX>:regex>"
     "$<$<COMPILE_LANGUAGE:CXX>:spdlog/spdlog.h>"
     "$<$<COMPILE_LANGUAGE:CXX>:glaze/glaze.hpp>"
@@ -141,10 +143,9 @@ target_precompile_headers(warp PRIVATE
 # 11. INCLUDES & LINKING
 target_include_directories(warp 
     PUBLIC 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
     PRIVATE 
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
 target_link_libraries(warp 
