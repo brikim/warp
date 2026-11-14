@@ -71,6 +71,7 @@ namespace warp
       std::optional<std::string> stoppedAt;
       bool watched{false};
       std::string serverRatingKey;
+      std::optional<std::string> libraryId;
       JsonTracearrHistoryUser user;
 
       struct glaze
@@ -92,6 +93,7 @@ namespace warp
             "stopped_at", &JsonTracearrHistoryItem::stoppedAt,
             "watched", &JsonTracearrHistoryItem::watched,
             "rating_key", &JsonTracearrHistoryItem::serverRatingKey,
+            "library_id", &JsonTracearrHistoryItem::libraryId,
             "user", &JsonTracearrHistoryItem::user);
          // clang-format on
       };

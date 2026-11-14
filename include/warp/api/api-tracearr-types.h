@@ -35,6 +35,7 @@ namespace warp
       std::string watchTime;
       bool watched{false};
       std::string serverRatingKey;
+      std::optional<std::string> libraryId;
       TracearrHistoryUser user;
    };
 

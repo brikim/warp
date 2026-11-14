@@ -242,6 +242,7 @@ namespace warp
                : std::move(item.startedAt),
             .watched = item.watched,
             .serverRatingKey = std::move(item.serverRatingKey),
+            .libraryId = std::move(item.libraryId),
             .user = TracearrHistoryUser{
                .id = std::move(item.user.id),
                .name = std::move(item.user.userName)}});
@@ -322,6 +323,7 @@ namespace warp
                : std::move(item.startedAt),
             .watched = item.watched,
             .serverRatingKey = std::move(item.serverRatingKey),
+            .libraryId = std::move(item.libraryId),
             .user = TracearrHistoryUser{
                .id = std::move(item.user.id),
                .name = std::move(item.user.userName)}});
