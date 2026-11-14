@@ -58,16 +58,6 @@ namespace warp
       return ANSI_FORMATTED_EMBY;
    }
 
-   inline std::string_view GetFormattedTautulli()
-   {
-      return ANSI_FORMATTED_TAUTULLI;
-   }
-
-   inline std::string_view GetFormattedJellystat()
-   {
-      return ANSI_FORMATTED_JELLYSTAT;
-   }
-
    inline std::string_view GetFormattedTracearr()
    {
       return ANSI_FORMATTED_TRACEARR;
@@ -86,10 +76,6 @@ namespace warp
          return GetFormattedPlex();
       case ApiType::EMBY:
          return GetFormattedEmby();
-      case ApiType::TAUTULLI:
-         return GetFormattedTautulli();
-      case ApiType::JELLYSTAT:
-         return GetFormattedJellystat();
       case ApiType::TRACEARR:
          return GetFormattedTracearr();
       case ApiType::UNKNOWN:

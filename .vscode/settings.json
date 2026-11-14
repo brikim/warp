@@ -3,8 +3,6 @@
         "ANSII",
         "emby",
         "jellyfin",
-        "jellystat",
-        "tautulli",
         "PLEXTV"
     ],
     "cmake.generator": "Ninja",

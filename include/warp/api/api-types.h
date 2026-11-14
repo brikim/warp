@@ -22,8 +22,6 @@ namespace warp
       std::optional<std::string> tracearrServerName;
       std::string url;
       std::string apiKey;
-      std::string trackerUrl;
-      std::string trackerApiKey;
       std::filesystem::path mediaPath;
    };
 

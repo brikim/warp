@@ -13,8 +13,6 @@ namespace warp
       UNKNOWN,
       PLEX,
       EMBY,
-      TAUTULLI,
-      JELLYSTAT,
       TRACEARR
    };
 

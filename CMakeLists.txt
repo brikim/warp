@@ -49,13 +49,9 @@ set(WARP_SOURCES
     include/warp/api/api-base.h
     include/warp/api/api-emby-types.h
     include/warp/api/api-emby.h
-    include/warp/api/api-jellystat-types.h
-    include/warp/api/api-jellystat.h
     include/warp/api/api-manager.h
     include/warp/api/api-plex-types.h
     include/warp/api/api-plex.h
-    include/warp/api/api-tautulli-types.h
-    include/warp/api/api-tautulli.h
     include/warp/api/api-tracearr.h
     include/warp/api/api-types.h
     include/warp/http/http-client.h
@@ -71,13 +67,9 @@ set(WARP_SOURCES
     src/api/api-base.cpp
     src/api/api-emby-json-types.h
     src/api/api-emby.cpp
-    src/api/api-jellystat-json-types.h
-    src/api/api-jellystat.cpp
     src/api/api-manager.cpp
     src/api/api-plex-json-types.h
     src/api/api-plex.cpp
-    src/api/api-tautulli-json-types.h
-    src/api/api-tautulli.cpp
     src/api/api-tracearr.cpp
     src/http/http-client.cpp
     src/http/http-utils.h

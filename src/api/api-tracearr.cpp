@@ -119,7 +119,6 @@ namespace warp
 
    std::string_view TracearrApi::GetApiTokenName() const
    {
-      // Jellystat api key is sent via header
       return "";
    }
 
