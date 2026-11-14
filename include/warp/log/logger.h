@@ -13,10 +13,12 @@ namespace warp
    {
    public:
       // Returns a static instance of the Logger class
-      static Logger& Instance()
-      {
-         return instance_;
-      }
+      static Logger& Instance();
+
+      Logger(const Logger&) = delete;
+      Logger& operator=(const Logger&) = delete;
+      Logger(Logger&&) = delete;
+      Logger& operator=(Logger&&) = delete;
 
       void InitFileLogging(const std::filesystem::path& path, std::string_view filename);
       void InitApprise(const AppriseLoggingConfig& config);
@@ -58,8 +60,6 @@ namespace warp
 
       void LogInternal(LogType level, std::string_view msg);
       bool ShouldLog(LogType level);
-
-      static Logger instance_;
 
       struct Impl;
       std::unique_ptr<Impl> pimpl_;

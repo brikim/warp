@@ -16,6 +16,12 @@
 
 namespace warp
 {
+   Logger& Logger::Instance()
+   {
+      static Logger instance;
+      return instance;
+   }
+
    namespace
    {
       spdlog::level::level_enum ToSpdLogLevel(LogType level)
