@@ -20,7 +20,7 @@ namespace warp
               std::string_view version,
               const ServerConfig& serverConfig,
               const ServerEmbyOptions& options);
-      virtual ~EmbyApi();
+      ~EmbyApi() override;
 
       [[nodiscard]] std::optional<std::vector<Task>> GetTaskList() override;
 

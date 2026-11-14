@@ -23,7 +23,7 @@ namespace warp
       TracearrApi(std::string_view appName,
                   std::string_view version,
                   const TracearrConfig& serverConfig);
-      virtual ~TracearrApi();
+      ~TracearrApi() override;
 
       // Returns true if the server is reachable and the API key is valid
       [[nodiscard]] bool GetValid() override;

@@ -15,7 +15,7 @@ namespace warp
    {
    public:
       TautulliApi(std::string_view appName, std::string_view version, const ServerConfig& serverConfig);
-      virtual ~TautulliApi();
+      ~TautulliApi() override;
 
       [[nodiscard]] std::optional<std::vector<Task>> GetTaskList() override;
 

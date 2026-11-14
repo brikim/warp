@@ -8,7 +8,6 @@
 #include <optional>
 #include <string_view>
 
-
 namespace warp
 {
    class Base
@@ -44,6 +43,12 @@ namespace warp
       }
 
       template <typename... Args>
+      void LogCritical(std::format_string<Args...> fmt, Args&&... args) const
+      {
+         log::CriticalWithHeader(header_, fmt, std::forward<Args>(args)...);
+      }
+
+      template <typename... Args>
       void Log(LogType type, std::string_view fmt, Args&&... args) const
       {
          switch (type)
@@ -59,6 +64,9 @@ namespace warp
             break;
          case LogType::ERR:
             LogError(fmt, std::forward<Args>(args)...);
+            break;
+         case LogType::CRITICAL:
+            LogCritical(fmt, std::forward<Args>(args)...);
             break;
          default:
             break;

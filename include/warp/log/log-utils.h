@@ -90,6 +90,9 @@ namespace warp
          return GetFormattedTautulli();
       case ApiType::JELLYSTAT:
          return GetFormattedJellystat();
+      case ApiType::TRACEARR:
+         return GetFormattedTracearr();
+      case ApiType::UNKNOWN:
       default:
          return ANSI_FORMATTED_UNKNOWN;
       }

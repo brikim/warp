@@ -25,49 +25,49 @@ namespace warp
 
    inline std::string GetPercentEncoded(std::string_view src)
    {
-      // 1. Lookup table for "unreserved" characters (RFC 3986)
-      // 0 = needs encoding, 1 = safe
-      static constexpr auto SAFE = []() {
-         std::array<std::uint8_t, 256> table{{0}};
-         // Fill unreserved characters (RFC 3986)
-         for (int i = '0'; i <= '9'; ++i)
-            table[i] = 1;
-         for (int i = 'A'; i <= 'Z'; ++i)
-            table[i] = 1;
-         for (int i = 'a'; i <= 'z'; ++i)
-            table[i] = 1;
-         table['-'] = 1;
-         table['.'] = 1;
-         table['_'] = 1;
-         table['~'] = 1;
+      // 1. 256-entry lookup table for "unreserved" characters (RFC 3986)
+      static constexpr auto SAFE = []() constexpr {
+         std::array<bool, 256> table{};
+         for (size_t i = '0'; i <= '9'; ++i)
+            table[i] = true;
+         for (size_t i = 'A'; i <= 'Z'; ++i)
+            table[i] = true;
+         for (size_t i = 'a'; i <= 'z'; ++i)
+            table[i] = true;
+         table[static_cast<unsigned char>('-')] = true;
+         table[static_cast<unsigned char>('.')] = true;
+         table[static_cast<unsigned char>('_')] = true;
+         table[static_cast<unsigned char>('~')] = true;
          return table;
       }();
 
-      static constexpr char hex_chars[] = "0123456789ABCDEF";
+      static constexpr std::array<char, 16> hex_chars = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
       // 2. Pre-calculate exact size to avoid reallocations
       size_t new_size{0};
-      for (unsigned char c : src)
+      for (char c : src)
       {
-         new_size += SAFE[c] ? 1 : 3;
+         const auto uc = static_cast<unsigned char>(c);
+         new_size += SAFE[uc] ? 1 : 3;
       }
 
       // 3. One single allocation
       std::string result;
       result.reserve(new_size);
 
-      // 4. Direct pointer-style insertion
-      for (unsigned char c : src)
+      // 4. Encode
+      for (char c : src)
       {
-         if (SAFE[c])
+         const auto uc = static_cast<unsigned char>(c);
+         if (SAFE[uc])
          {
             result.push_back(c);
          }
          else
          {
             result.push_back('%');
-            result.push_back(hex_chars[c >> 4]);   // High nibble
-            result.push_back(hex_chars[c & 0x0F]); // Low nibble
+            result.push_back(hex_chars[static_cast<size_t>(uc >> 4U)]);
+            result.push_back(hex_chars[static_cast<size_t>(uc & 0x0FU)]);
          }
       }
 

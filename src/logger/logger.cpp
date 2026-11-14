@@ -8,8 +8,10 @@
 #include <filesystem>
 #include <spdlog/async.h>
 #include <spdlog/async_logger.h>
+#include <spdlog/sinks/base_sink-inl.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/wincolor_sink-inl.h>
 #include <string>
 
 namespace warp
@@ -28,6 +30,7 @@ namespace warp
             return spdlog::level::err;
          case LogType::CRITICAL:
             return spdlog::level::critical;
+         case LogType::INFO:
          default:
             return spdlog::level::info;
          }

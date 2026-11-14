@@ -10,7 +10,7 @@ namespace warp
    {
    public:
       AnsiiFormatter();
-      virtual ~AnsiiFormatter() = default;
+      ~AnsiiFormatter() override = default;
 
       void format(const spdlog::details::log_msg& msg, spdlog::memory_buf_t& dest) override;
       std::unique_ptr<spdlog::formatter> clone() const override;

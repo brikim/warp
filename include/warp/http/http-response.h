@@ -52,9 +52,9 @@ namespace warp
 
    struct Response
    {
-      int32_t status;
       std::string reason;
       std::string body;
+      int32_t status;
       Error error;
    };
 } // namespace warp

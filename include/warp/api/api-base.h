@@ -17,7 +17,7 @@ namespace warp
    {
    public:
       ApiBase(const ApiBaseData& data);
-      virtual ~ApiBase();
+      ~ApiBase() override;
 
       // Api tasks are optional. Api's can override to perform a task
       [[nodiscard]] virtual std::optional<std::vector<Task>> GetTaskList();

@@ -18,7 +18,7 @@ namespace warp
               std::string_view version,
               const ServerConfig& serverConfig,
               const ServerPlexOptions& options);
-      virtual ~PlexApi();
+      ~PlexApi() override;
 
       [[nodiscard]] std::optional<std::vector<Task>> GetTaskList() override;
 

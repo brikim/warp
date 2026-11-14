@@ -321,7 +321,7 @@ namespace warp
          }
 
          item.ratingKey = resData.ratingKey;
-         item.durationMs = resData.duration;
+         item.durationMs = static_cast<int64_t>(resData.duration);
          item.watched = resData.viewCount && !resData.viewOffset;
 
          if (item.watched)
@@ -331,7 +331,7 @@ namespace warp
          else if (item.durationMs > 0 && resData.viewOffset)
          {
             // std::lround handles the floating point conversion safely
-            item.playbackPercentage = std::lround((*resData.viewOffset * 100.0) / item.durationMs);
+            item.playbackPercentage = std::lround((static_cast<double>(*resData.viewOffset) * 100.0) / static_cast<double>(item.durationMs));
          }
          else
          {
@@ -882,7 +882,7 @@ namespace warp
 
       auto serverContainer = serverDoc.child("MediaContainer");
       PlexNameToIdMap workingUserTokens;
-      workingUserTokens.reserve(serverContainer.attribute("size").as_int());
+      workingUserTokens.reserve(static_cast<size_t>(serverContainer.attribute("size").as_int()));
       for (auto sharedServer : serverContainer.children("SharedServer"))
       {
          std::string username = sharedServer.attribute("username").value();
@@ -935,14 +935,14 @@ namespace warp
 
    void PlexApi::PlexApiImpl::CheckPathMap()
    {
-      auto res = parent_.Get(parent_.BuildApiPath(API_LIBRARIES), adminHeaders_);
-      if (!parent_.IsHttpSuccess(__func__, res))
+      auto libRes = parent_.Get(parent_.BuildApiPath(API_LIBRARIES), adminHeaders_);
+      if (!parent_.IsHttpSuccess(__func__, libRes))
          return;
 
       JsonPlexResponse<JsonPlexLibraryResult> serverResponse;
-      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, libRes.body))
       {
-         parent_.LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
+         parent_.LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, libRes.body));
          return;
       }
 
@@ -982,12 +982,12 @@ namespace warp
              {"X-Plex-Container-Start", "0"},
              {"X-Plex-Container-Size", "50"}});
 
-         auto res = parent_.Get(apiPath, adminHeaders_);
-         if (!parent_.IsHttpSuccess(__func__, res))
+         auto recAddRes = parent_.Get(apiPath, adminHeaders_);
+         if (!parent_.IsHttpSuccess(__func__, recAddRes))
             continue;
 
          JsonPlexResponse<JsonPlexLibrarySectionResult> sectionData;
-         if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(sectionData, res.body))
+         if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(sectionData, recAddRes.body))
             continue;
 
          if (sectionData.response.data.empty())

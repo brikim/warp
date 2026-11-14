@@ -115,9 +115,9 @@ namespace warp
          return pimpl_->GetInvalidResponse(res);
 
       return Response{
-         .status = res->status,
          .reason = std::move(res->reason),
          .body = std::move(res->body),
+         .status = res->status,
          .error = pimpl_->ConvertError(res.error())};
    }
 
@@ -129,9 +129,9 @@ namespace warp
          return pimpl_->GetInvalidResponse(res);
 
       return Response{
-         .status = res->status,
          .reason = std::move(res->reason),
          .body = std::move(res->body),
+         .status = res->status,
          .error = pimpl_->ConvertError(res.error())};
    }
 
@@ -143,9 +143,9 @@ namespace warp
          return pimpl_->GetInvalidResponse(res);
 
       return Response{
-         .status = res->status,
          .reason = std::move(res->reason),
          .body = std::move(res->body),
+         .status = res->status,
          .error = pimpl_->ConvertError(res.error())};
    }
 
@@ -157,9 +157,9 @@ namespace warp
          return pimpl_->GetInvalidResponse(res);
 
       return Response{
-         .status = res->status,
          .reason = std::move(res->reason),
          .body = std::move(res->body),
+         .status = res->status,
          .error = pimpl_->ConvertError(res.error())};
    }
 
@@ -171,9 +171,9 @@ namespace warp
          return pimpl_->GetInvalidResponse(res);
 
       return Response{
-         .status = res->status,
          .reason = std::move(res->reason),
          .body = std::move(res->body),
+         .status = res->status,
          .error = pimpl_->ConvertError(res.error())};
    }
 
@@ -185,9 +185,9 @@ namespace warp
          return pimpl_->GetInvalidResponse(res);
 
       return Response{
-         .status = res->status,
          .reason = std::move(res->reason),
          .body = std::move(res->body),
+         .status = res->status,
          .error = pimpl_->ConvertError(res.error())};
    }
 
@@ -214,9 +214,9 @@ namespace warp
    Response HttpClient::HttpClientImpl::GetInvalidResponse(const httplib::Result& res) const
    {
       return Response{
-         .status = VALID_HTTP_RESPONSE_MAX,
          .reason = "HTTP returned no result",
          .body = "",
+         .status = VALID_HTTP_RESPONSE_MAX,
          .error = ConvertError(res.error())};
    }
 
@@ -391,7 +391,5 @@ namespace warp
       default:
          return "Error condition Unknown";
       }
-
-      return "Invalid";
    }
 } // namespace warp

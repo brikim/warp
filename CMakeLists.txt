@@ -23,16 +23,26 @@ check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error)
 include(FetchContent)
 include(Dependencies.cmake)
 
-FetchContent_Declare(spdlog  GIT_REPOSITORY ${SPDLOG_REPO}  GIT_TAG ${SPDLOG_VERSION})
-FetchContent_Declare(glaze   GIT_REPOSITORY ${GLAZE_REPO}   GIT_TAG ${GLAZE_VERSION})
-FetchContent_Declare(httplib GIT_REPOSITORY ${HTTPLIB_REPO} GIT_TAG ${HTTPLIB_VERSION})
-FetchContent_Declare(libcron GIT_REPOSITORY ${LIBCRON_REPO} GIT_TAG ${LIBCRON_VERSION})
-FetchContent_Declare(pugixml GIT_REPOSITORY ${PUGIXML_REPO} GIT_TAG ${PUGIXML_VERSION})
+FetchContent_Declare(spdlog  GIT_REPOSITORY ${SPDLOG_REPO}  GIT_TAG ${SPDLOG_VERSION}  SYSTEM)
+FetchContent_Declare(glaze   GIT_REPOSITORY ${GLAZE_REPO}   GIT_TAG ${GLAZE_VERSION}   SYSTEM)
+FetchContent_Declare(httplib GIT_REPOSITORY ${HTTPLIB_REPO} GIT_TAG ${HTTPLIB_VERSION} SYSTEM)
+FetchContent_Declare(libcron GIT_REPOSITORY ${LIBCRON_REPO} GIT_TAG ${LIBCRON_VERSION} SYSTEM EXCLUDE_FROM_ALL)
+FetchContent_Declare(pugixml GIT_REPOSITORY ${PUGIXML_REPO} GIT_TAG ${PUGIXML_VERSION} SYSTEM)
 
 # Force dependencies to respect our MSVC runtime settings
 set(SPDLOG_MSVC_RUNTIME_LIBRARY "${CMAKE_MSVC_RUNTIME_LIBRARY}" CACHE STRING "" FORCE)
 
 FetchContent_MakeAvailable(libcron glaze httplib spdlog pugixml)
+
+# Ensure all dependency include directories are treated as SYSTEM headers by Clang/GCC
+foreach(dep_target IN ITEMS spdlog glaze httplib libcron pugixml-static)
+    if(TARGET ${dep_target})
+        get_target_property(dep_inc ${dep_target} INTERFACE_INCLUDE_DIRECTORIES)
+        if(dep_inc)
+            set_target_properties(${dep_target} PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${dep_inc}")
+        endif()
+    endif()
+endforeach()
 
 # 5. SOURCE DEFINITIONS
 set(WARP_SOURCES
@@ -108,8 +118,25 @@ if(ipo_supported)
 endif()
 
 target_compile_options(warp PRIVATE
+    # MSVC / clang-cl flags
     $<$<CXX_COMPILER_ID:MSVC>:/utf-8 /MP>
-    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
+    
+    # Standard Clang/GCC flags (C++ only, skips OpenSSL's applink.c)
+    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:ClangCl>>>:
+        -Wall 
+        -Wextra 
+        -Wpedantic 
+        -Wshadow 
+        -Wconversion 
+        -Wno-c++98-compat 
+        -Wno-c++98-compat-pedantic 
+        -Wno-exit-time-destructors 
+        -Wno-global-constructors 
+        -Wno-padded
+        -Wno-covered-switch-default
+        -Wno-ctad-maybe-unsupported
+        -Wno-switch-enum
+    >
 )
 
 # 9. PLATFORM SPECIFIC LINKING
@@ -162,6 +189,7 @@ target_link_libraries(warp
 target_compile_definitions(warp PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 
 if(WIN32)
-    # Required for static linking of OpenSSL on MSVC to handle IO
+    # Silence CRT deprecation warnings (fopen/_open) in OpenSSL's applink.c
+    target_compile_definitions(warp PRIVATE $<$<COMPILE_LANGUAGE:C>:_CRT_SECURE_NO_WARNINGS>)
     target_link_libraries(warp PRIVATE OpenSSL::applink)
 endif()

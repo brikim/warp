@@ -400,11 +400,11 @@ namespace warp
       returnPlaylist.id = std::move(item->id);
 
       returnPlaylist.items.reserve(response.Items.size());
-      std::ranges::transform(response.Items, std::back_inserter(returnPlaylist.items), [](auto& item) {
+      std::ranges::transform(response.Items, std::back_inserter(returnPlaylist.items), [](auto& playlistItem) {
          return EmbyPlaylistItem{
-            std::move(item.Name),
-            std::move(item.Id),
-            std::move(item.PlaylistItemId)};
+            std::move(playlistItem.Name),
+            std::move(playlistItem.Id),
+            std::move(playlistItem.PlaylistItemId)};
       });
 
       return returnPlaylist;
@@ -540,6 +540,7 @@ namespace warp
          case EmbyUpdateType::DELETED:
             jsonUpdate.UpdateType = "Deleted";
             break;
+         case EmbyUpdateType::CREATED:
          default:
             jsonUpdate.UpdateType = "Created";
             break;
