@@ -29,7 +29,7 @@ namespace warp
       constexpr std::string_view PATH{"Path"};
       constexpr std::string_view MEDIA_TYPE{"MediaType"};
       constexpr std::string_view RECURSIVE{"Recursive"};
-      constexpr std::string_view MOVIES{"Movies"};
+      constexpr std::string_view VIDEO{"Video"};
       constexpr std::string_view SEARCH_TERM{"SearchTerm"};
       constexpr std::string_view FIELDS("Fields");
       constexpr std::string_view IS_MISSING{"IsMissing"};
@@ -49,6 +49,7 @@ namespace warp
             .path = std::move(item.Path),
             .type = std::move(item.Type),
             .series = {
+               .id = std::move(item.SeriesId),
                .name = std::move(item.SeriesName),
                .seasonNum = item.ParentIndexNumber,
                .episodeNum = item.IndexNumber},
@@ -312,7 +313,7 @@ namespace warp
       const auto apiParams = HttpParams{
          {RECURSIVE, "true"},
          {ANY_PROVIDER_ID_EQUALS, providerIdsString},
-         {FIELDS, "Path,SeriesName,RunTimeTicks,ProviderIds"}};
+         {FIELDS, "Path,SeriesId,SeriesName,RunTimeTicks,ProviderIds"}};
       auto res = Get(BuildApiParamsPath(API_ITEMS, apiParams), pimpl_->headers_);
       if (!IsHttpSuccess(__func__, res))
          return {};
@@ -453,7 +454,7 @@ namespace warp
 
    void EmbyApi::CreatePlaylist(std::string_view name, const std::vector<std::string>& itemIds)
    {
-      const auto apiPath = BuildApiParamsPath(API_PLAYLISTS, {{NAME, name}, {IDS, BuildCommaSeparatedList(itemIds)}, {MEDIA_TYPE, MOVIES}});
+      const auto apiPath = BuildApiParamsPath(API_PLAYLISTS, {{NAME, name}, {IDS, BuildCommaSeparatedList(itemIds)}, {MEDIA_TYPE, VIDEO}});
 
       auto res = Post(apiPath, pimpl_->headers_);
       IsHttpSuccess(__func__, res);

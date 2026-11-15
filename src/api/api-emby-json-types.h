@@ -18,6 +18,7 @@ namespace warp
       std::string Type;
       std::string Name;
       std::filesystem::path Path;
+      std::string SeriesId;
       std::string SeriesName;
       uint32_t ParentIndexNumber{0};
       uint32_t IndexNumber{0};

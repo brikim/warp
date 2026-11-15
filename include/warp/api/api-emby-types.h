@@ -25,6 +25,7 @@ namespace warp
 
    struct EmbyItemSeries
    {
+      std::string id;
       std::string name;
       uint32_t seasonNum{0u};
       uint32_t episodeNum{0u};
