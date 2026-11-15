@@ -35,6 +35,21 @@ namespace warp
       constexpr std::string_view BACKDROP("Backdrop");
       constexpr std::string_view PARENT_ID("ParentId");
       constexpr std::string_view INCLUDE_ITEM_TYPES("IncludeItemTypes");
+      constexpr std::string_view ANY_PROVIDER_ID_EQUALS{"AnyProviderIdEquals"};
+
+      EmbyItem ToEmbyItem(JsonEmbyItem& item)
+      {
+         return EmbyItem{
+            .name = std::move(item.Name),
+            .id = std::move(item.Id),
+            .path = std::move(item.Path),
+            .type = std::move(item.Type),
+            .series = {
+               .name = std::move(item.SeriesName),
+               .seasonNum = item.ParentIndexNumber,
+               .episodeNum = item.IndexNumber},
+            .runTimeTicks = item.RunTimeTicks};
+      }
    } // namespace
 
    struct EmbyApi::EmbyApiImpl
@@ -267,26 +282,46 @@ namespace warp
 
       if (it != response.Items.end())
       {
-         auto& match = *it;
-         EmbyItem returnItem;
-
-         // Move flat data
-         returnItem.id = std::move(match.Id);
-         returnItem.type = std::move(match.Type);
-         returnItem.name = std::move(match.Name);
-         returnItem.path = std::move(match.Path);
-         returnItem.runTimeTicks = match.RunTimeTicks;
-
-         // Populate nested series data
-         returnItem.series.name = std::move(match.SeriesName);
-         returnItem.series.seasonNum = match.ParentIndexNumber;
-         returnItem.series.episodeNum = match.IndexNumber;
-
-         return returnItem;
+         return ToEmbyItem(*it);
       }
 
       LogWarning("{} returned no valid results {}", __func__, GetTag("search", name));
       return std::nullopt;
+   }
+
+   std::vector<EmbyItem> EmbyApi::GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds)
+   {
+      std::vector<std::string> providerIds;
+      providerIds.reserve(tmdbIds.size());
+      for (const auto& id : tmdbIds)
+      {
+         if (!id.empty())
+            providerIds.emplace_back(std::format("tmdb.{}", id));
+      }
+
+      if (providerIds.empty())
+         return {};
+
+      const auto providerIdsString = BuildCommaSeparatedList(providerIds);
+      const auto apiParams = HttpParams{
+         {RECURSIVE, "true"},
+         {ANY_PROVIDER_ID_EQUALS, providerIdsString},
+         {FIELDS, "Path,SeriesName,RunTimeTicks"}};
+      auto res = Get(BuildApiParamsPath(API_ITEMS, apiParams), pimpl_->headers_);
+      if (!IsHttpSuccess(__func__, res))
+         return {};
+
+      JsonEmbyItemsResponse response;
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
+      {
+         LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
+         return {};
+      }
+
+      std::vector<EmbyItem> items;
+      items.reserve(response.Items.size());
+      std::ranges::transform(response.Items, std::back_inserter(items), ToEmbyItem);
+      return items;
    }
 
    std::optional<EmbyUserData> EmbyApi::EmbyApiImpl::GetUser(std::string_view name)

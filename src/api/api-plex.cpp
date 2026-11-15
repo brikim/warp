@@ -15,6 +15,7 @@
 #include <pugixml.hpp>
 #include <ranges>
 #include <shared_mutex>
+#include <unordered_set>
 
 namespace warp
 {
@@ -32,6 +33,51 @@ namespace warp
       constexpr std::string_view API_SERVERS{"/servers"};
       constexpr std::string_view API_LIBRARIES{"/library/sections"};
       constexpr std::string_view API_LIBRARY_DATA{"/library/metadata"};
+
+      struct PlexLibraryLookup
+      {
+         std::string name;
+         std::string id;
+         PlexSearchTypes type;
+      };
+
+      PlexSearchResult ToPlexSearchResult(JsonPlexMetadata& metadata, std::string_view libraryName)
+      {
+         PlexSearchResult result;
+         if (metadata.showTitle)
+         {
+            result.title = std::move(*metadata.showTitle);
+            result.title += " - ";
+            result.title += metadata.title;
+         }
+         else
+         {
+            result.title = std::move(metadata.title);
+         }
+
+         result.ratingKey = std::move(metadata.ratingKey);
+         result.libraryName = libraryName;
+         result.durationMs = static_cast<int64_t>(metadata.duration);
+         result.watched = metadata.viewCount && !metadata.viewOffset;
+
+         if (result.watched)
+         {
+            result.playbackPercentage = 100;
+         }
+         else if (result.durationMs > 0 && metadata.viewOffset)
+         {
+            result.playbackPercentage = std::lround(
+               (static_cast<double>(*metadata.viewOffset) * 100.0) / static_cast<double>(result.durationMs));
+         }
+
+         for (auto& media : metadata.media)
+         {
+            for (auto& part : media.part)
+               result.paths.emplace_back(std::move(part.file));
+         }
+
+         return result;
+      }
    } // namespace
 
    struct PlexApi::PlexApiImpl
@@ -304,48 +350,11 @@ namespace warp
       }
 
       PlexSearchResults returnResults;
-      for (auto& resData : serverResponse.response.data)
-      {
-         auto& item = returnResults.items.emplace_back();
-         item.libraryName = serverResponse.response.library;
-
-         if (resData.showTitle)
-         {
-            item.title = std::move(*resData.showTitle);
-            item.title += " - ";
-            item.title += resData.title;
-         }
-         else
-         {
-            item.title = std::move(resData.title);
-         }
-
-         item.ratingKey = resData.ratingKey;
-         item.durationMs = static_cast<int64_t>(resData.duration);
-         item.watched = resData.viewCount && !resData.viewOffset;
-
-         if (item.watched)
-         {
-            item.playbackPercentage = 100;
-         }
-         else if (item.durationMs > 0 && resData.viewOffset)
-         {
-            // std::lround handles the floating point conversion safely
-            item.playbackPercentage = std::lround((static_cast<double>(*resData.viewOffset) * 100.0) / static_cast<double>(item.durationMs));
-         }
-         else
-         {
-            item.playbackPercentage = 0;
-         }
-
-         for (auto& media : resData.media)
-         {
-            for (auto& part : media.part)
-            {
-               item.paths.emplace_back(std::move(part.file));
-            }
-         }
-      }
+      returnResults.items.reserve(serverResponse.response.data.size());
+      std::ranges::transform(
+         serverResponse.response.data,
+         std::back_inserter(returnResults.items),
+         [&](auto& metadata) { return ToPlexSearchResult(metadata, serverResponse.response.library); });
 
       return returnResults;
    }
@@ -396,6 +405,74 @@ namespace warp
             results.emplace(id, iter->second);
          }
       }
+      return results;
+   }
+
+   std::vector<PlexSearchResult> PlexApi::GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds)
+   {
+      std::vector<std::string> uniqueTmdbIds;
+      uniqueTmdbIds.reserve(tmdbIds.size());
+      std::unordered_set<std::string> seenTmdbIds;
+      seenTmdbIds.reserve(tmdbIds.size());
+      for (const auto& id : tmdbIds)
+      {
+         if (!id.empty() && seenTmdbIds.insert(id).second)
+            uniqueTmdbIds.emplace_back(id);
+      }
+
+      std::vector<PlexLibraryLookup> libraryLookups;
+      {
+         std::shared_lock sharedLock(pimpl_->dataLock_);
+         libraryLookups.reserve(pimpl_->libraries_.size());
+         for (const auto& [name, library] : pimpl_->libraries_)
+         {
+            if (library.type == "movie")
+               libraryLookups.emplace_back(name, library.id, plex_search_movie);
+            else if (library.type == "show")
+               libraryLookups.emplace_back(name, library.id, plex_search_show);
+         }
+      }
+
+      std::vector<PlexSearchResult> results;
+      std::unordered_set<std::string> seenRatingKeys;
+      bool success = true;
+      for (const auto& id : uniqueTmdbIds)
+      {
+         const auto guid = std::format("tmdb://{}", id);
+         for (const auto& library : libraryLookups)
+         {
+            const auto searchType = std::to_string(static_cast<int32_t>(library.type));
+            const auto apiPath = BuildApiParamsPath(
+               std::format("{}/{}/all", API_LIBRARIES, library.id),
+               {{"type", searchType}, {"guid", guid}});
+            auto res = Get(apiPath, pimpl_->adminHeaders_);
+            if (!IsHttpSuccess(__func__, res))
+            {
+               success = false;
+               break;
+            }
+
+            JsonPlexResponse<JsonPlexMetadataContainer> serverResponse;
+            if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
+            {
+               LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
+               success = false;
+               break;
+            }
+
+            for (auto& metadata : serverResponse.response.data)
+            {
+               if (seenRatingKeys.insert(metadata.ratingKey).second)
+                  results.emplace_back(ToPlexSearchResult(metadata, library.name));
+            }
+         }
+
+         if (!success)
+            break;
+      }
+
+      if (!success)
+         results.clear();
       return results;
    }
 

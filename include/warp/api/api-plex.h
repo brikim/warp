@@ -34,6 +34,7 @@ namespace warp
 
       [[nodiscard]] std::optional<std::filesystem::path> GetItemPath(std::string_view id);
       [[nodiscard]] std::unordered_map<std::string, std::filesystem::path> GetItemsPaths(const std::vector<std::string>& ids);
+      [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds);
 
       // Returns if the collection in the library is valid on this server
       [[nodiscard]] bool GetCollectionValid(std::string_view library, std::string_view collection);

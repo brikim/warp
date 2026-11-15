@@ -32,6 +32,7 @@ namespace warp
       [[nodiscard]] std::optional<std::string> GetLibraryId(std::string_view libraryName);
 
       std::optional<EmbyItem> GetItem(EmbySearchType type, std::string_view name, const HttpParams& extraSearchArgs = {});
+      [[nodiscard]] std::vector<EmbyItem> GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds);
 
       [[nodiscard]] std::optional<EmbyUserData> GetUser(std::string_view name);
 
