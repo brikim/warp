@@ -55,6 +55,13 @@ namespace warp
       std::vector<EmbyPlaylistItem> items;
    };
 
+   struct EmbyCollection
+   {
+      std::string name;
+      std::string id;
+      std::vector<EmbyItem> items;
+   };
+
    struct EmbyUserData
    {
       std::string name;

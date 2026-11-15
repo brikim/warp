@@ -49,6 +49,15 @@ namespace warp
       bool RemovePlaylistItems(std::string_view playlistId, const std::vector<std::string>& removeIds);
       bool MovePlaylistItem(std::string_view playlistId, std::string_view itemId, uint32_t index);
 
+      [[nodiscard]] bool GetCollectionExists(std::string_view name);
+      [[nodiscard]] std::optional<EmbyCollection> GetCollection(std::string_view name);
+      bool CreateCollection(
+         std::string_view name,
+         const std::vector<std::string>& itemIds,
+         std::optional<std::string_view> parentId = std::nullopt);
+      bool AddCollectionItems(std::string_view collectionId, const std::vector<std::string>& addIds);
+      bool RemoveCollectionItems(std::string_view collectionId, const std::vector<std::string>& removeIds);
+
       [[nodiscard]] std::vector<EmbyItemBackdropImages> GetItemsWithMultipleBackdrops(std::string_view libId);
       [[nodiscard]] std::vector<EmbyBackdrop> GetBackdrops(std::string_view id);
       bool RemoveBackdropImage(std::string_view id, int32_t index);

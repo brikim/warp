@@ -21,6 +21,7 @@ namespace warp
       constexpr std::string_view API_MEDIA_FOLDERS{"/Library/SelectableMediaFolders"};
       constexpr std::string_view API_ITEMS{"/Items"};
       constexpr std::string_view API_PLAYLISTS{"/Playlists"};
+      constexpr std::string_view API_COLLECTIONS{"/Collections"};
       constexpr std::string_view API_USERS{"/Users"};
 
       constexpr std::string_view NAME{"Name"};
@@ -37,6 +38,7 @@ namespace warp
       constexpr std::string_view PARENT_ID("ParentId");
       constexpr std::string_view INCLUDE_ITEM_TYPES("IncludeItemTypes");
       constexpr std::string_view ANY_PROVIDER_ID_EQUALS{"AnyProviderIdEquals"};
+      constexpr std::string_view BOX_SET{"BoxSet"};
 
       EmbyItem ToEmbyItem(JsonEmbyItem& item)
       {
@@ -476,6 +478,80 @@ namespace warp
    bool EmbyApi::MovePlaylistItem(std::string_view playlistId, std::string_view itemId, uint32_t index)
    {
       const auto apiPath{BuildApiPath(std::format("{}/{}/Items/{}/Move/{}", API_PLAYLISTS, playlistId, itemId, index))};
+
+      auto res = Post(apiPath, pimpl_->headers_);
+      return IsHttpSuccess(__func__, res);
+   }
+
+   bool EmbyApi::GetCollectionExists(std::string_view name)
+   {
+      return GetItem(EmbySearchType::name, name, {{INCLUDE_ITEM_TYPES, BOX_SET}}).has_value();
+   }
+
+   std::optional<EmbyCollection> EmbyApi::GetCollection(std::string_view name)
+   {
+      static const HttpParams apiParams = {
+         {INCLUDE_ITEM_TYPES, BOX_SET}};
+      auto item = GetItem(EmbySearchType::name, name, apiParams);
+      if (!item)
+         return std::nullopt;
+
+      const auto collectionItemsParams = HttpParams{
+         {PARENT_ID, item->id},
+         {RECURSIVE, "false"},
+         {FIELDS, "Path,SeriesName,RunTimeTicks,ProviderIds"}};
+      auto res = Get(BuildApiParamsPath(API_ITEMS, collectionItemsParams), pimpl_->headers_);
+      if (!IsHttpSuccess(__func__, res))
+         return std::nullopt;
+
+      JsonEmbyItemsResponse response;
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(response, res.body))
+      {
+         LogWarning(
+            "{} - JSON Parse Error: {}",
+            __func__,
+            glz::format_error(ec, res.body));
+         return std::nullopt;
+      }
+
+      EmbyCollection collection;
+      collection.name = std::move(item->name);
+      collection.id = std::move(item->id);
+      collection.items.reserve(response.Items.size());
+      std::ranges::transform(response.Items, std::back_inserter(collection.items), ToEmbyItem);
+      return collection;
+   }
+
+   bool EmbyApi::CreateCollection(
+      std::string_view name,
+      const std::vector<std::string>& itemIds,
+      std::optional<std::string_view> parentId)
+   {
+      HttpParams params = {
+         {NAME, name},
+         {IDS, BuildCommaSeparatedList(itemIds)}};
+      if (parentId)
+         params.emplace_back(PARENT_ID, *parentId);
+
+      auto res = Post(BuildApiParamsPath(API_COLLECTIONS, params), pimpl_->headers_);
+      return IsHttpSuccess(__func__, res);
+   }
+
+   bool EmbyApi::AddCollectionItems(std::string_view collectionId, const std::vector<std::string>& addIds)
+   {
+      const auto apiPath = BuildApiParamsPath(
+         std::format("{}/{}/Items", API_COLLECTIONS, collectionId),
+         {{IDS, BuildCommaSeparatedList(addIds)}});
+
+      auto res = Post(apiPath, pimpl_->headers_);
+      return IsHttpSuccess(__func__, res);
+   }
+
+   bool EmbyApi::RemoveCollectionItems(std::string_view collectionId, const std::vector<std::string>& removeIds)
+   {
+      const auto apiPath = BuildApiParamsPath(
+         std::format("{}/{}/Items/Delete", API_COLLECTIONS, collectionId),
+         {{IDS, BuildCommaSeparatedList(removeIds)}});
 
       auto res = Post(apiPath, pimpl_->headers_);
       return IsHttpSuccess(__func__, res);
