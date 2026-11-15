@@ -9,6 +9,7 @@
 #include <format>
 #include <glaze/glaze.hpp>
 #include <shared_mutex>
+#include <unordered_set>
 
 namespace warp
 {
@@ -39,6 +40,7 @@ namespace warp
 
       EmbyItem ToEmbyItem(JsonEmbyItem& item)
       {
+         const auto tmdbId = item.ProviderIds.find("Tmdb");
          return EmbyItem{
             .name = std::move(item.Name),
             .id = std::move(item.Id),
@@ -48,7 +50,10 @@ namespace warp
                .name = std::move(item.SeriesName),
                .seasonNum = item.ParentIndexNumber,
                .episodeNum = item.IndexNumber},
-            .runTimeTicks = item.RunTimeTicks};
+            .runTimeTicks = item.RunTimeTicks,
+            .tmdbId = tmdbId == item.ProviderIds.end()
+                         ? std::nullopt
+                         : std::make_optional(std::move(tmdbId->second))};
       }
    } // namespace
 
@@ -293,9 +298,11 @@ namespace warp
    {
       std::vector<std::string> providerIds;
       providerIds.reserve(tmdbIds.size());
+      std::unordered_set<std::string> seenTmdbIds;
+      seenTmdbIds.reserve(tmdbIds.size());
       for (const auto& id : tmdbIds)
       {
-         if (!id.empty())
+         if (!id.empty() && seenTmdbIds.insert(id).second)
             providerIds.emplace_back(std::format("tmdb.{}", id));
       }
 
@@ -306,7 +313,7 @@ namespace warp
       const auto apiParams = HttpParams{
          {RECURSIVE, "true"},
          {ANY_PROVIDER_ID_EQUALS, providerIdsString},
-         {FIELDS, "Path,SeriesName,RunTimeTicks"}};
+         {FIELDS, "Path,SeriesName,RunTimeTicks,ProviderIds"}};
       auto res = Get(BuildApiParamsPath(API_ITEMS, apiParams), pimpl_->headers_);
       if (!IsHttpSuccess(__func__, res))
          return {};

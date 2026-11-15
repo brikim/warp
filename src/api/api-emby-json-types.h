@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace warp
@@ -22,6 +23,7 @@ namespace warp
       uint32_t IndexNumber{0};
       uint64_t RunTimeTicks{0};
       std::vector<std::string> BackdropImageTags;
+      std::unordered_map<std::string, std::string> ProviderIds;
    };
 
    struct JsonEmbyItemsResponse

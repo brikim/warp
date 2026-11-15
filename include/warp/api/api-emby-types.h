@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -37,6 +38,7 @@ namespace warp
       std::string type;
       EmbyItemSeries series;
       uint64_t runTimeTicks{0u};
+      std::optional<std::string> tmdbId;
    };
 
    struct EmbyPlaylistItem
