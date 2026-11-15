@@ -51,9 +51,7 @@ namespace warp
                .seasonNum = item.ParentIndexNumber,
                .episodeNum = item.IndexNumber},
             .runTimeTicks = item.RunTimeTicks,
-            .tmdbId = tmdbId == item.ProviderIds.end()
-                         ? std::nullopt
-                         : std::make_optional(std::move(tmdbId->second))};
+            .tmdbId = tmdbId == item.ProviderIds.end() ? std::nullopt : std::make_optional(std::move(tmdbId->second))};
       }
    } // namespace
 
@@ -290,7 +288,6 @@ namespace warp
          return ToEmbyItem(*it);
       }
 
-      LogWarning("{} returned no valid results {}", __func__, GetTag("search", name));
       return std::nullopt;
    }
 
