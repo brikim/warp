@@ -527,9 +527,10 @@ namespace warp
       const std::vector<std::string>& itemIds,
       std::optional<std::string_view> parentId)
    {
+      const auto ids = BuildCommaSeparatedList(itemIds);
       HttpParams params = {
          {NAME, name},
-         {IDS, BuildCommaSeparatedList(itemIds)}};
+         {IDS, ids}};
       if (parentId)
          params.emplace_back(PARENT_ID, *parentId);
 
