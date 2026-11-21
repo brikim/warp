@@ -12,6 +12,7 @@
 #include <format>
 #include <glaze/glaze.hpp>
 #include <mutex>
+#include <optional>
 #include <pugixml.hpp>
 #include <ranges>
 #include <shared_mutex>
@@ -108,6 +109,7 @@ namespace warp
       Headers headersNoToken_;
       Headers adminHeaders_;
 
+      std::optional<std::string> machineIdentifier_;
       std::filesystem::path mediaPath_;
       bool enableCacheCollections_{false};
       bool enableCachePaths_{false};
@@ -151,6 +153,7 @@ namespace warp
       void RebuildCollectionMap();
       void RebuildPathMap();
       void RebuildUserTokenMap();
+      void RebuildMachineIdentifier();
 
       void CheckPathMap();
       bool CheckHttpSuccess(const warp::Response& res, std::string_view function);
@@ -166,6 +169,7 @@ namespace warp
 
       // Returns the collection rating key
       [[nodiscard]] std::string GetCollectionId(std::string_view library, std::string_view collection);
+      [[nodiscard]] std::optional<std::string> GetMachineIdentifier();
    };
 
    PlexApi::PlexApiImpl::PlexApiImpl(PlexApi& p, std::string_view appName, std::string_view version, const ServerConfig& serverConfig)
@@ -450,6 +454,8 @@ namespace warp
          if (!id.empty() && seenTmdbIds.insert(id).second)
             uniqueTmdbIds.emplace_back(id);
       }
+      if (uniqueTmdbIds.empty())
+         return {};
 
       std::vector<PlexLibraryLookup> libraryLookups;
       {
@@ -469,16 +475,24 @@ namespace warp
 
       std::vector<PlexSearchResult> results;
       std::unordered_set<std::string> seenRatingKeys;
+      std::unordered_map<std::string, std::vector<PlexSearchResult>> resultsByTmdbId;
+      resultsByTmdbId.reserve(uniqueTmdbIds.size());
+
+      constexpr int32_t pageSize{250};
+      const auto pageSizeString = std::to_string(pageSize);
       bool success = true;
-      for (const auto& id : uniqueTmdbIds)
+      for (const auto& library : libraryLookups)
       {
-         const auto guid = std::format("tmdb://{}", id);
-         for (const auto& library : libraryLookups)
+         const auto searchType = std::to_string(static_cast<int32_t>(library.type));
+         int32_t currentIndex{0};
+         while (success)
          {
-            const auto searchType = std::to_string(static_cast<int32_t>(library.type));
             const auto apiPath = BuildApiParamsPath(
                std::format("{}/{}/all", API_LIBRARIES, library.id),
-               {{"type", searchType}, {"guid", guid}, {"includeGuids", "1"}});
+               {{"type", searchType},
+                {"includeGuids", "1"},
+                {"X-Plex-Container-Start", std::to_string(currentIndex)},
+                {"X-Plex-Container-Size", pageSizeString}});
             auto res = Get(apiPath, pimpl_->adminHeaders_);
             if (!IsHttpSuccess(__func__, res))
             {
@@ -494,14 +508,21 @@ namespace warp
                break;
             }
 
+            if (serverResponse.response.data.empty())
+               break;
+
             for (auto& metadata : serverResponse.response.data)
             {
-               if (seenRatingKeys.insert(metadata.ratingKey).second)
-               {
-                  auto result = ToPlexSearchResult(metadata, library.name);
-                  results.emplace_back(std::move(result));
-               }
+               auto result = ToPlexSearchResult(metadata, library.name);
+               if (!result.tmdbId ||
+                   !seenTmdbIds.contains(*result.tmdbId) ||
+                   !seenRatingKeys.insert(result.ratingKey).second)
+                  continue;
+
+               resultsByTmdbId[*result.tmdbId].emplace_back(std::move(result));
             }
+
+            currentIndex += static_cast<int32_t>(serverResponse.response.data.size());
          }
 
          if (!success)
@@ -509,7 +530,19 @@ namespace warp
       }
 
       if (!success)
-         results.clear();
+         return {};
+
+      results.reserve(seenRatingKeys.size());
+      for (const auto& tmdbId : uniqueTmdbIds)
+      {
+         if (auto matchingItems = resultsByTmdbId.find(tmdbId);
+             matchingItems != resultsByTmdbId.end())
+         {
+            for (auto& item : matchingItems->second)
+               results.emplace_back(std::move(item));
+         }
+      }
+
       return results;
    }
 
@@ -550,6 +583,16 @@ namespace warp
          return {};
 
       return subIter->second;
+   }
+
+   std::optional<std::string> PlexApi::PlexApiImpl::GetMachineIdentifier()
+   {
+      {
+         std::shared_lock lock(dataLock_);
+         if (machineIdentifier_)
+            return machineIdentifier_;
+      }
+      return std::nullopt;
    }
 
    bool PlexApi::GetCollectionValid(std::string_view library, std::string_view collection)
@@ -712,9 +755,13 @@ namespace warp
       else
          return false;
 
+      const auto machineIdentifier = pimpl_->GetMachineIdentifier();
+      if (!machineIdentifier)
+         return false;
+
       const auto uri = std::format(
-         "{}/library/metadata/{}",
-         GetUrl(),
+         "server://{}/com.plexapp.plugins.library/library/metadata/{}",
+         *machineIdentifier,
          BuildCommaSeparatedList(itemRatingKeys));
       const auto searchTypeString = std::to_string(searchType);
       const HttpParams params = {
@@ -794,9 +841,13 @@ namespace warp
           std::ranges::any_of(itemRatingKeys, [](const auto& ratingKey) { return ratingKey.empty(); }))
          return false;
 
+      const auto machineIdentifier = pimpl_->GetMachineIdentifier();
+      if (!machineIdentifier)
+         return false;
+
       const auto uri = std::format(
-         "{}/library/metadata/{}",
-         GetUrl(),
+         "server://{}/com.plexapp.plugins.library/library/metadata/{}",
+         *machineIdentifier,
          BuildCommaSeparatedList(itemRatingKeys));
       const auto apiPath = BuildApiParamsPath(
          std::format("/library/collections/{}/items", collectionId),
@@ -1009,6 +1060,31 @@ namespace warp
       {
          parent_.LogWarning("{} - Keeping stale library data due to fetch failures", __func__);
       }
+   }
+
+   void PlexApi::PlexApiImpl::RebuildMachineIdentifier()
+   {
+      parent_.LogTrace("Rebuilding Machine Identifier");
+
+      auto res = parent_.Get(parent_.BuildApiPath("/identity"), adminHeaders_);
+      if (!parent_.IsHttpSuccess(__func__, res))
+         return;
+
+      JsonPlexResponse<JsonPlexServerIdentity> serverResponse;
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
+      {
+         parent_.LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
+         return;
+      }
+
+      if (serverResponse.response.machineIdentifier.empty())
+      {
+         parent_.LogWarning("{} - Plex identity did not include machineIdentifier", __func__);
+         return;
+      }
+
+      std::unique_lock lock(dataLock_);
+      machineIdentifier_ = std::move(serverResponse.response.machineIdentifier);
    }
 
    void PlexApi::PlexApiImpl::RebuildCollectionMap()
@@ -1401,15 +1477,19 @@ namespace warp
    void PlexApi::PlexApiImpl::UpdateCacheRequired(bool forceRefresh)
    {
       bool refreshLibraries = false;
+      bool refreshMachineIdentifier = false;
 
       // Scope around the lock
       {
          std::shared_lock lock(dataLock_);
          refreshLibraries = forceRefresh || libraries_.empty();
+         refreshMachineIdentifier = forceRefresh || !machineIdentifier_;
       }
 
       if (refreshLibraries)
          RebuildLibraryMap();
+      if (refreshMachineIdentifier)
+         RebuildMachineIdentifier();
    }
 
    void PlexApi::PlexApiImpl::UpdateCacheCollections(bool forceRefresh)

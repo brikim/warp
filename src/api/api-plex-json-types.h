@@ -189,6 +189,18 @@ namespace warp
 
    // Server name structs
    // {
+   struct JsonPlexServerIdentity
+   {
+      std::string machineIdentifier;
+
+      struct glaze
+      {
+         // clang-format off
+         static constexpr auto value = glz::object(
+            "machineIdentifier", &JsonPlexServerIdentity::machineIdentifier);
+         // clang-format on
+      };
+   };
    struct JsonPlexServerName
    {
       std::string name;
