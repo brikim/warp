@@ -540,9 +540,6 @@ namespace warp
          return {};
       }
 
-      if (serverResponse.response.data.size() == 0)
-         return std::nullopt;
-
       PlexCollection collection;
       collection.name = collectionName;
 
