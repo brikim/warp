@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -58,6 +59,8 @@ namespace warp
       int64_t durationMs{0};
       int32_t playbackPercentage{0};
       bool watched{false};
+      // TMDB ID from the item's Plex GUIDs, when available.
+      std::optional<std::string> tmdbId;
    };
 
    struct PlexSearchResults

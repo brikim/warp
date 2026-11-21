@@ -2,7 +2,9 @@
 
 #include <cstdint>
 #include <glaze/glaze.hpp>
+#include <optional>
 #include <string>
+#include <variant>
 
 namespace warp
 {
@@ -107,6 +109,18 @@ namespace warp
 
    // Meta data structs
    // {
+   struct JsonPlexGuid
+   {
+      std::string id;
+
+      struct glaze
+      {
+         // clang-format off
+         static constexpr auto value = glz::object(
+            "id", &JsonPlexGuid::id);
+         // clang-format on
+      };
+   };
    struct JsonPlexMetadata
    {
       std::string ratingKey;
@@ -116,6 +130,7 @@ namespace warp
       std::optional<int> viewCount;
       std::optional<int64_t> viewOffset;
       std::vector<JsonPlexMedia> media;
+      std::vector<JsonPlexGuid> guids;
 
       struct glaze
       {
@@ -127,7 +142,8 @@ namespace warp
             "duration", &JsonPlexMetadata::duration,
             "viewCount", &JsonPlexMetadata::viewCount,
             "viewOffset", &JsonPlexMetadata::viewOffset,
-            "Media", &JsonPlexMetadata::media);
+            "Media", &JsonPlexMetadata::media,
+            "Guid", &JsonPlexMetadata::guids);
          // clang-format on
       };
    };
@@ -142,6 +158,30 @@ namespace warp
          static constexpr auto value = glz::object(
             "librarySectionTitle", &JsonPlexMetadataContainer::library,
             "Metadata", &JsonPlexMetadataContainer::data);
+         // clang-format on
+      };
+   };
+   struct JsonPlexCollectionPreference
+   {
+      std::optional<std::variant<int32_t, std::string>> collectionSort;
+
+      struct glaze
+      {
+         // clang-format off
+         static constexpr auto value = glz::object(
+            "collectionSort", &JsonPlexCollectionPreference::collectionSort);
+         // clang-format on
+      };
+   };
+   struct JsonPlexCollectionPreferenceContainer
+   {
+      std::vector<JsonPlexCollectionPreference> data;
+
+      struct glaze
+      {
+         // clang-format off
+         static constexpr auto value = glz::object(
+            "Metadata", &JsonPlexCollectionPreferenceContainer::data);
          // clang-format on
       };
    };

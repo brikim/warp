@@ -60,6 +60,22 @@ namespace warp
          result.durationMs = static_cast<int64_t>(metadata.duration);
          result.watched = metadata.viewCount && !metadata.viewOffset;
 
+         constexpr std::string_view tmdbGuidPrefix{"tmdb://"};
+         for (const auto& guid : metadata.guids)
+         {
+            if (!guid.id.starts_with(tmdbGuidPrefix))
+               continue;
+
+            const auto tmdbId = std::string_view(guid.id).substr(tmdbGuidPrefix.size());
+            if (!tmdbId.empty() &&
+                std::ranges::all_of(tmdbId, [](char digit) { return digit >= '0' && digit <= '9'; }) &&
+                std::ranges::any_of(tmdbId, [](char digit) { return digit != '0'; }))
+            {
+               result.tmdbId = std::string(tmdbId);
+               break;
+            }
+         }
+
          if (result.watched)
          {
             result.playbackPercentage = 100;
@@ -411,6 +427,20 @@ namespace warp
 
    std::vector<PlexSearchResult> PlexApi::GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds)
    {
+      return GetItemsByTmdbIdsImpl(tmdbIds, std::nullopt);
+   }
+
+   std::vector<PlexSearchResult> PlexApi::GetItemsByTmdbIds(
+      std::string_view libraryName,
+      const std::vector<std::string>& tmdbIds)
+   {
+      return GetItemsByTmdbIdsImpl(tmdbIds, libraryName);
+   }
+
+   std::vector<PlexSearchResult> PlexApi::GetItemsByTmdbIdsImpl(
+      const std::vector<std::string>& tmdbIds,
+      std::optional<std::string_view> libraryName)
+   {
       std::vector<std::string> uniqueTmdbIds;
       uniqueTmdbIds.reserve(tmdbIds.size());
       std::unordered_set<std::string> seenTmdbIds;
@@ -427,6 +457,9 @@ namespace warp
          libraryLookups.reserve(pimpl_->libraries_.size());
          for (const auto& [name, library] : pimpl_->libraries_)
          {
+            if (libraryName && *libraryName != name)
+               continue;
+
             if (library.type == "movie")
                libraryLookups.emplace_back(name, library.id, plex_search_movie);
             else if (library.type == "show")
@@ -445,7 +478,7 @@ namespace warp
             const auto searchType = std::to_string(static_cast<int32_t>(library.type));
             const auto apiPath = BuildApiParamsPath(
                std::format("{}/{}/all", API_LIBRARIES, library.id),
-               {{"type", searchType}, {"guid", guid}});
+               {{"type", searchType}, {"guid", guid}, {"includeGuids", "1"}});
             auto res = Get(apiPath, pimpl_->adminHeaders_);
             if (!IsHttpSuccess(__func__, res))
             {
@@ -464,7 +497,10 @@ namespace warp
             for (auto& metadata : serverResponse.response.data)
             {
                if (seenRatingKeys.insert(metadata.ratingKey).second)
-                  results.emplace_back(ToPlexSearchResult(metadata, library.name));
+               {
+                  auto result = ToPlexSearchResult(metadata, library.name);
+                  results.emplace_back(std::move(result));
+               }
             }
          }
 
@@ -562,6 +598,90 @@ namespace warp
       }
 
       return collection;
+   }
+
+   std::optional<PlexCollectionSort> PlexApi::GetCollectionSort(
+      std::string_view library,
+      std::string_view collectionName)
+   {
+      const auto collectionId = pimpl_->GetCollectionId(library, collectionName);
+      if (collectionId.empty())
+         return std::nullopt;
+
+      const auto apiPath = BuildApiParamsPath(
+         std::format("{}/{}", API_LIBRARY_DATA, collectionId),
+         {{"includePreferences", "1"}});
+      auto res = Get(apiPath, pimpl_->adminHeaders_);
+      if (!IsHttpSuccess(__func__, res))
+         return std::nullopt;
+
+      JsonPlexResponse<JsonPlexCollectionPreferenceContainer> serverResponse;
+      if (auto ec = glz::read<glz::opts{.error_on_unknown_keys = false}>(serverResponse, res.body))
+      {
+         LogWarning("{} - JSON Parse Error: {}", __func__, glz::format_error(ec, res.body));
+         return std::nullopt;
+      }
+
+      if (serverResponse.response.data.empty())
+      {
+         LogWarning(
+            "{} - Collection sort preference was not returned for {}",
+            __func__,
+            GetTag("collection", collectionName));
+         return std::nullopt;
+      }
+
+      const auto& collectionSort = serverResponse.response.data.front().collectionSort;
+      if (!collectionSort)
+      {
+         LogWarning(
+            "{} - Collection sort preference was not returned for {}",
+            __func__,
+            GetTag("collection", collectionName));
+         return std::nullopt;
+      }
+
+      int32_t collectionSortValue{};
+      if (const auto* numericValue = std::get_if<int32_t>(&*collectionSort))
+      {
+         collectionSortValue = *numericValue;
+      }
+      else
+      {
+         const auto& stringValue = std::get<std::string>(*collectionSort);
+         if (stringValue == "0")
+            collectionSortValue = 0;
+         else if (stringValue == "1")
+            collectionSortValue = 1;
+         else if (stringValue == "2")
+            collectionSortValue = 2;
+         else
+         {
+            LogWarning(
+               "{} - Unknown collection sort preference {} for {}",
+               __func__,
+               stringValue,
+               GetTag("collection", collectionName));
+            return std::nullopt;
+         }
+      }
+
+      switch (collectionSortValue)
+      {
+      case static_cast<int32_t>(PlexCollectionSort::Release):
+         return PlexCollectionSort::Release;
+      case static_cast<int32_t>(PlexCollectionSort::Alpha):
+         return PlexCollectionSort::Alpha;
+      case static_cast<int32_t>(PlexCollectionSort::Custom):
+         return PlexCollectionSort::Custom;
+      default:
+         LogWarning(
+            "{} - Unknown collection sort preference {} for {}",
+            __func__,
+            collectionSortValue,
+            GetTag("collection", collectionName));
+         return std::nullopt;
+      }
    }
 
    bool PlexApi::CreateCollection(

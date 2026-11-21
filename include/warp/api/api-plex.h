@@ -35,12 +35,18 @@ namespace warp
       [[nodiscard]] std::optional<std::filesystem::path> GetItemPath(std::string_view id);
       [[nodiscard]] std::unordered_map<std::string, std::filesystem::path> GetItemsPaths(const std::vector<std::string>& ids);
       [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds);
+      [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIds(
+         std::string_view libraryName,
+         const std::vector<std::string>& tmdbIds);
 
       // Returns if the collection in the library is valid on this server
       [[nodiscard]] bool GetCollectionValid(std::string_view library, std::string_view collection);
 
       // Returns the collection information for the collection in the library
       [[nodiscard]] std::optional<PlexCollection> GetCollection(std::string_view library, std::string_view collectionName);
+      [[nodiscard]] std::optional<PlexCollectionSort> GetCollectionSort(
+         std::string_view library,
+         std::string_view collectionName);
 
       bool CreateCollection(
          std::string_view library,
@@ -88,6 +94,10 @@ namespace warp
    private:
       struct PlexApiImpl;
       friend struct PlexApiImpl;
+      [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIdsImpl(
+         const std::vector<std::string>& tmdbIds,
+         std::optional<std::string_view> libraryName);
+
       std::unique_ptr<PlexApiImpl> pimpl_;
    };
 } // namespace warp
