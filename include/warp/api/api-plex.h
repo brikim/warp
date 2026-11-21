@@ -42,6 +42,32 @@ namespace warp
       // Returns the collection information for the collection in the library
       [[nodiscard]] std::optional<PlexCollection> GetCollection(std::string_view library, std::string_view collectionName);
 
+      bool CreateCollection(
+         std::string_view library,
+         std::string_view collectionName,
+         const std::vector<std::string>& itemRatingKeys);
+      bool SetCollectionSort(
+         std::string_view library,
+         std::string_view collectionName,
+         PlexCollectionSort sort);
+      bool SetCollectionTitleSort(
+         std::string_view library,
+         std::string_view collectionName,
+         std::string_view titleSort);
+      bool AddCollectionItems(
+         std::string_view library,
+         std::string_view collectionName,
+         const std::vector<std::string>& itemRatingKeys);
+      bool RemoveCollectionItems(
+         std::string_view library,
+         std::string_view collectionName,
+         const std::vector<std::string>& itemRatingKeys);
+      bool MoveCollectionItem(
+         std::string_view library,
+         std::string_view collectionName,
+         std::string_view itemRatingKey,
+         std::optional<std::string_view> afterRatingKey = std::nullopt);
+
       // Returns if a user token is available for the given user name
       [[nodiscard]] bool GetUserTokenAvailable(std::string_view userName) const;
 

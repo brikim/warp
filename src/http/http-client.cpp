@@ -177,6 +177,20 @@ namespace warp
          .error = pimpl_->ConvertError(res.error())};
    }
 
+   Response HttpClient::Put(const std::string& path, const Headers& headers)
+   {
+      auto res = pimpl_->client_.Put(path, pimpl_->GetHttpLibHeaders(headers));
+
+      if (!res)
+         return pimpl_->GetInvalidResponse(res);
+
+      return Response{
+         .reason = std::move(res->reason),
+         .body = std::move(res->body),
+         .status = res->status,
+         .error = pimpl_->ConvertError(res.error())};
+   }
+
    Response HttpClient::Delete(const std::string& path, const Headers& headers)
    {
       auto res = pimpl_->client_.Delete(path, pimpl_->GetHttpLibHeaders(headers));

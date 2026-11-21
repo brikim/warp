@@ -26,6 +26,7 @@ namespace warp
       [[nodiscard]] Response Post(const std::string& path, const Headers& headers, const std::string& body, const std::string& contentType);
       [[nodiscard]] Response Post(const std::string& path, const HttpParams& params);
       [[nodiscard]] Response Post(const std::string& path, const Headers& headers, const HttpParams& params);
+      [[nodiscard]] Response Put(const std::string& path, const Headers& headers);
       [[nodiscard]] Response Delete(const std::string& path, const Headers& headers);
 
       [[nodiscard]] std::string BuildHttpPath(const std::string_view base,

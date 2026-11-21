@@ -137,6 +137,11 @@ namespace warp
       return pimpl_->client_.Post(path, headers, body, contentType);
    }
 
+   Response ApiBase::Put(const std::string& path, const Headers& headers)
+   {
+      return pimpl_->client_.Put(path, headers);
+   }
+
    Response ApiBase::Delete(const std::string& path, const Headers& headers)
    {
       return pimpl_->client_.Delete(path, headers);

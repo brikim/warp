@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -28,8 +29,16 @@ namespace warp
       plex_search_userPlaylistItem = 1001,
    };
 
+   enum class PlexCollectionSort
+   {
+      Release = 0,
+      Alpha = 1,
+      Custom = 2
+   };
+
    struct PlexCollectionItem
    {
+      std::string ratingKey;
       std::string title;
       std::vector<std::filesystem::path> paths;
    };

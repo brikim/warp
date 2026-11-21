@@ -78,6 +78,7 @@ namespace warp
 
          return result;
       }
+
    } // namespace
 
    struct PlexApi::PlexApiImpl
@@ -147,8 +148,8 @@ namespace warp
       [[nodiscard]] std::optional<std::string> GetTracearrServerName() const;
       [[nodiscard]] std::optional<std::string> GetLibraryId(std::string_view libraryName) const;
 
-      // Returns the collection api path
-      [[nodiscard]] std::string GetCollectionKey(std::string_view library, std::string_view collection);
+      // Returns the collection rating key
+      [[nodiscard]] std::string GetCollectionId(std::string_view library, std::string_view collection);
    };
 
    PlexApi::PlexApiImpl::PlexApiImpl(PlexApi& p, std::string_view appName, std::string_view version, const ServerConfig& serverConfig)
@@ -490,7 +491,7 @@ namespace warp
       IsHttpSuccess(__func__, res);
    }
 
-   std::string PlexApi::PlexApiImpl::GetCollectionKey(std::string_view library, std::string_view collection)
+   std::string PlexApi::PlexApiImpl::GetCollectionId(std::string_view library, std::string_view collection)
    {
       if (!enableCacheCollections_)
       {
@@ -517,16 +518,18 @@ namespace warp
 
    bool PlexApi::GetCollectionValid(std::string_view library, std::string_view collection)
    {
-      return !pimpl_->GetCollectionKey(library, collection).empty();
+      return !pimpl_->GetCollectionId(library, collection).empty();
    }
 
    std::optional<PlexCollection> PlexApi::GetCollection(std::string_view library, std::string_view collectionName)
    {
-      auto collectionPath = pimpl_->GetCollectionKey(library, collectionName);
-      if (collectionPath.empty())
+      const auto collectionId = pimpl_->GetCollectionId(library, collectionName);
+      if (collectionId.empty())
          return std::nullopt;
 
-      auto res = Get(BuildApiPath(collectionPath), pimpl_->adminHeaders_);
+      auto res = Get(
+         BuildApiPath(std::format("{}/{}/children", API_LIBRARY_DATA, collectionId)),
+         pimpl_->adminHeaders_);
       if (!IsHttpSuccess(__func__, res))
          return std::nullopt;
 
@@ -549,7 +552,8 @@ namespace warp
             continue;
 
          auto& item = collection.items.emplace_back();
-         item.title = data.title;
+         item.ratingKey = std::move(data.ratingKey);
+         item.title = std::move(data.title);
 
          for (auto& media : data.media)
          {
@@ -561,6 +565,180 @@ namespace warp
       }
 
       return collection;
+   }
+
+   bool PlexApi::CreateCollection(
+      std::string_view library,
+      std::string_view collectionName,
+      const std::vector<std::string>& itemRatingKeys)
+   {
+      if (itemRatingKeys.empty() ||
+          std::ranges::any_of(itemRatingKeys, [](const auto& ratingKey) { return ratingKey.empty(); }))
+         return false;
+
+      std::string libraryId;
+      std::string libraryType;
+      {
+         std::shared_lock lock(pimpl_->dataLock_);
+         const auto libraryIter = pimpl_->libraries_.find(library);
+         if (libraryIter == pimpl_->libraries_.end())
+            return false;
+         libraryId = libraryIter->second.id;
+         libraryType = libraryIter->second.type;
+      }
+
+      int32_t searchType{0};
+      if (libraryType == "movie")
+         searchType = static_cast<int32_t>(plex_search_movie);
+      else if (libraryType == "show")
+         searchType = static_cast<int32_t>(plex_search_show);
+      else
+         return false;
+
+      const auto uri = std::format(
+         "{}/library/metadata/{}",
+         GetUrl(),
+         BuildCommaSeparatedList(itemRatingKeys));
+      const auto searchTypeString = std::to_string(searchType);
+      const HttpParams params = {
+         {"uri", uri},
+         {"type", searchTypeString},
+         {"title", collectionName},
+         {"smart", "0"},
+         {"sectionId", libraryId}};
+
+      const auto apiPath = BuildApiParamsPath("/library/collections", params);
+      auto res = Post(apiPath, pimpl_->adminHeaders_);
+      if (!IsHttpSuccess(__func__, res))
+         return false;
+
+      pimpl_->UpdateCacheCollections(true);
+      return true;
+   }
+
+   bool PlexApi::SetCollectionSort(
+      std::string_view library,
+      std::string_view collectionName,
+      PlexCollectionSort sort)
+   {
+      if (sort != PlexCollectionSort::Release &&
+          sort != PlexCollectionSort::Alpha &&
+          sort != PlexCollectionSort::Custom)
+         return false;
+
+      const auto collectionId = pimpl_->GetCollectionId(library, collectionName);
+      if (collectionId.empty())
+         return false;
+
+      const auto sortValue = std::to_string(static_cast<int32_t>(sort));
+      const auto apiPath = BuildApiParamsPath(
+         std::format("{}/{}/prefs", API_LIBRARY_DATA, collectionId),
+         {{"collectionSort", sortValue}});
+      auto res = Put(apiPath, pimpl_->adminHeaders_);
+      if (!IsHttpSuccess(__func__, res))
+         return false;
+
+      return true;
+   }
+
+   bool PlexApi::SetCollectionTitleSort(
+      std::string_view library,
+      std::string_view collectionName,
+      std::string_view titleSort)
+   {
+      const auto collectionId = pimpl_->GetCollectionId(library, collectionName);
+      const auto libraryId = GetLibraryId(library);
+      if (collectionId.empty() || !libraryId)
+         return false;
+
+      const auto apiPath = BuildApiParamsPath(
+         std::format("{}/{}/all", API_LIBRARIES, *libraryId),
+         {{"id", collectionId},
+          {"type", std::to_string(static_cast<int32_t>(plex_search_collection))},
+          {"titleSort.value", titleSort},
+          {"titleSort.locked", "1"}});
+      auto res = Put(apiPath, pimpl_->adminHeaders_);
+      if (!IsHttpSuccess(__func__, res))
+         return false;
+
+      return true;
+   }
+
+   bool PlexApi::AddCollectionItems(
+      std::string_view library,
+      std::string_view collectionName,
+      const std::vector<std::string>& itemRatingKeys)
+   {
+      const auto collectionId = pimpl_->GetCollectionId(library, collectionName);
+      if (collectionId.empty())
+         return false;
+
+      if (itemRatingKeys.empty() ||
+          std::ranges::any_of(itemRatingKeys, [](const auto& ratingKey) { return ratingKey.empty(); }))
+         return false;
+
+      const auto uri = std::format(
+         "{}/library/metadata/{}",
+         GetUrl(),
+         BuildCommaSeparatedList(itemRatingKeys));
+      const auto apiPath = BuildApiParamsPath(
+         std::format("/library/collections/{}/items", collectionId),
+         {{"uri", uri}});
+      auto res = Put(apiPath, pimpl_->adminHeaders_);
+      if (!IsHttpSuccess(__func__, res))
+         return false;
+
+      return true;
+   }
+
+   bool PlexApi::RemoveCollectionItems(
+      std::string_view library,
+      std::string_view collectionName,
+      const std::vector<std::string>& itemRatingKeys)
+   {
+      const auto collectionId = pimpl_->GetCollectionId(library, collectionName);
+      if (collectionId.empty())
+         return false;
+
+      bool successful{true};
+      for (const auto& itemRatingKey : itemRatingKeys)
+      {
+         if (itemRatingKey.empty())
+            continue;
+
+         const auto apiPath = BuildApiPath(
+            std::format("/library/collections/{}/items/{}", collectionId, itemRatingKey));
+         auto res = Put(apiPath, pimpl_->adminHeaders_);
+         if (!IsHttpSuccess(__func__, res))
+            successful = false;
+      }
+
+      return successful;
+   }
+
+   bool PlexApi::MoveCollectionItem(
+      std::string_view library,
+      std::string_view collectionName,
+      std::string_view itemRatingKey,
+      std::optional<std::string_view> afterRatingKey)
+   {
+      const auto collectionId = pimpl_->GetCollectionId(library, collectionName);
+      if (collectionId.empty() || itemRatingKey.empty())
+         return false;
+
+      HttpParams params;
+      if (afterRatingKey && !afterRatingKey->empty())
+         params.emplace_back("after", *afterRatingKey);
+
+      const auto apiPath = BuildApiParamsPath(
+         std::format("/library/collections/{}/items/{}/move", collectionId, itemRatingKey),
+         params);
+
+      auto res = Put(apiPath, pimpl_->adminHeaders_);
+      if (!IsHttpSuccess(__func__, res))
+         return false;
+
+      return true;
    }
 
    bool PlexApi::GetUserTokenAvailable(std::string_view userName) const
@@ -757,7 +935,7 @@ namespace warp
 
          for (auto& item : serverResponse.response.data)
          {
-            nameToIdMap.emplace(std::move(item.title), std::move(item.key));
+            nameToIdMap.emplace(std::move(item.title), std::move(item.ratingKey));
          }
 
          workingCollections.emplace(id, std::move(nameToIdMap));
