@@ -529,17 +529,17 @@ namespace warp
             break;
       }
 
-      if (!success)
-         return {};
-
-      results.reserve(seenRatingKeys.size());
-      for (const auto& tmdbId : uniqueTmdbIds)
+      if (success)
       {
-         if (auto matchingItems = resultsByTmdbId.find(tmdbId);
-             matchingItems != resultsByTmdbId.end())
+         results.reserve(seenRatingKeys.size());
+         for (const auto& tmdbId : uniqueTmdbIds)
          {
-            for (auto& item : matchingItems->second)
-               results.emplace_back(std::move(item));
+            if (auto matchingItems = resultsByTmdbId.find(tmdbId);
+                matchingItems != resultsByTmdbId.end())
+            {
+               for (auto& item : matchingItems->second)
+                  results.emplace_back(std::move(item));
+            }
          }
       }
 
