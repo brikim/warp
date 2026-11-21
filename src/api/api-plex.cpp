@@ -876,7 +876,7 @@ namespace warp
 
          const auto apiPath = BuildApiPath(
             std::format("/library/collections/{}/items/{}", collectionId, itemRatingKey));
-         auto res = Put(apiPath, pimpl_->adminHeaders_);
+         auto res = Delete(apiPath, pimpl_->adminHeaders_);
          if (!IsHttpSuccess(__func__, res))
             successful = false;
       }
