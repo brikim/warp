@@ -18,7 +18,7 @@ namespace warp
    inline const std::string ANSI_CODE_LOG_DEFAULT{std::format("{}8{}", ANSI_CODE_START, ANSI_CODE_END)};
    inline const std::string ANSI_CODE_LOG{std::format("{}15{}", ANSI_CODE_START, ANSI_CODE_END)};
    inline const std::string ANSI_CODE_TAG{std::format("{}37{}", ANSI_CODE_START, ANSI_CODE_END)};
-   inline const std::string ANSI_CODE_STANDOUT{std::format("{}158{}", ANSI_CODE_START, ANSI_CODE_END)};
+   inline const std::string ANSI_CODE_STANDOUT{std::format("{}230{}", ANSI_CODE_START, ANSI_CODE_END)};
 
    inline const std::string ANSI_CODE_PLEX{std::format("{}220{}", ANSI_CODE_START, ANSI_CODE_END)};
    inline const std::string ANSI_CODE_EMBY{std::format("{}77{}", ANSI_CODE_START, ANSI_CODE_END)};
