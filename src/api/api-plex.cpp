@@ -730,7 +730,7 @@ namespace warp
    bool PlexApi::CreateCollection(
       std::string_view library,
       std::string_view collectionName,
-      const std::vector<std::string>& itemRatingKeys)
+      std::span<const std::string_view> itemRatingKeys)
    {
       if (itemRatingKeys.empty() ||
           std::ranges::any_of(itemRatingKeys, [](const auto& ratingKey) { return ratingKey.empty(); }))

@@ -51,7 +51,7 @@ namespace warp
       bool CreateCollection(
          std::string_view library,
          std::string_view collectionName,
-         const std::vector<std::string>& itemRatingKeys);
+         std::span<const std::string_view> itemRatingKeys);
       bool SetCollectionSort(
          std::string_view library,
          std::string_view collectionName,
