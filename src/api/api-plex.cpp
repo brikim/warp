@@ -831,7 +831,7 @@ namespace warp
    bool PlexApi::AddCollectionItems(
       std::string_view library,
       std::string_view collectionName,
-      const std::vector<std::string>& itemRatingKeys)
+      std::span<const std::string_view> itemRatingKeys)
    {
       const auto collectionId = pimpl_->GetCollectionId(library, collectionName);
       if (collectionId.empty())
@@ -862,7 +862,7 @@ namespace warp
    bool PlexApi::RemoveCollectionItems(
       std::string_view library,
       std::string_view collectionName,
-      const std::vector<std::string>& itemRatingKeys)
+      std::span<const std::string_view> itemRatingKeys)
    {
       const auto collectionId = pimpl_->GetCollectionId(library, collectionName);
       if (collectionId.empty())

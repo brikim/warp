@@ -63,11 +63,11 @@ namespace warp
       bool AddCollectionItems(
          std::string_view library,
          std::string_view collectionName,
-         const std::vector<std::string>& itemRatingKeys);
+         std::span<const std::string_view> itemRatingKeys);
       bool RemoveCollectionItems(
          std::string_view library,
          std::string_view collectionName,
-         const std::vector<std::string>& itemRatingKeys);
+         std::span<const std::string_view> itemRatingKeys);
       bool MoveCollectionItem(
          std::string_view library,
          std::string_view collectionName,
