@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -31,8 +32,11 @@ namespace warp
       [[nodiscard]] std::optional<std::string> GetTracearrServerName() const;
       [[nodiscard]] std::optional<std::string> GetLibraryId(std::string_view libraryName);
 
-      std::optional<EmbyItem> GetItem(EmbySearchType type, std::string_view name, const HttpParams& extraSearchArgs = {});
-      [[nodiscard]] std::vector<EmbyItem> GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds);
+      std::optional<EmbyItem> GetItem(
+         EmbySearchType type,
+         std::string_view name,
+         std::span<const HttpParams::value_type> extraSearchArgs = {});
+      [[nodiscard]] std::vector<EmbyItem> GetItemsByTmdbIds(std::span<const std::string_view> tmdbIds);
 
       [[nodiscard]] std::optional<EmbyUserData> GetUser(std::string_view name);
 
@@ -44,19 +48,19 @@ namespace warp
 
       [[nodiscard]] bool GetPlaylistExists(std::string_view name);
       [[nodiscard]] std::optional<EmbyPlaylist> GetPlaylist(std::string_view name);
-      void CreatePlaylist(std::string_view name, const std::vector<std::string>& itemIds);
-      bool AddPlaylistItems(std::string_view playlistId, const std::vector<std::string>& addIds);
-      bool RemovePlaylistItems(std::string_view playlistId, const std::vector<std::string>& removeIds);
+      void CreatePlaylist(std::string_view name, std::span<const std::string_view> itemIds);
+      bool AddPlaylistItems(std::string_view playlistId, std::span<const std::string_view> addIds);
+      bool RemovePlaylistItems(std::string_view playlistId, std::span<const std::string_view> removeIds);
       bool MovePlaylistItem(std::string_view playlistId, std::string_view itemId, uint32_t index);
 
       [[nodiscard]] bool GetCollectionExists(std::string_view name);
       [[nodiscard]] std::optional<EmbyCollection> GetCollection(std::string_view name);
       bool CreateCollection(
          std::string_view name,
-         const std::vector<std::string>& itemIds,
+         std::span<const std::string_view> itemIds,
          std::optional<std::string_view> parentId = std::nullopt);
-      bool AddCollectionItems(std::string_view collectionId, const std::vector<std::string>& addIds);
-      bool RemoveCollectionItems(std::string_view collectionId, const std::vector<std::string>& removeIds);
+      bool AddCollectionItems(std::string_view collectionId, std::span<const std::string_view> addIds);
+      bool RemoveCollectionItems(std::string_view collectionId, std::span<const std::string_view> removeIds);
 
       [[nodiscard]] std::vector<EmbyItemBackdropImages> GetItemsWithMultipleBackdrops(std::string_view libId);
       [[nodiscard]] std::vector<EmbyBackdrop> GetBackdrops(std::string_view id);
@@ -64,7 +68,7 @@ namespace warp
 
       // Tell Emby to scan the passed in library
       void SetLibraryScan(std::string_view libraryId);
-      void SetMediaScan(const std::vector<EmbyMediaUpdate>& updates);
+      void SetMediaScan(std::span<const EmbyMediaUpdate> updates);
 
       [[nodiscard]] bool GetPathCacheEmpty() const;
       [[nodiscard]] std::optional<std::filesystem::path> GetItemPath(std::string_view id);

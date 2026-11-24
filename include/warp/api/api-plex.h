@@ -5,9 +5,11 @@
 
 #include <filesystem>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 namespace warp
 {
@@ -33,11 +35,9 @@ namespace warp
       [[nodiscard]] std::optional<PlexSearchResults> GetItemInfoByPathWithUserName(std::string_view userName, const std::filesystem::path& filePath);
 
       [[nodiscard]] std::optional<std::filesystem::path> GetItemPath(std::string_view id);
-      [[nodiscard]] std::unordered_map<std::string, std::filesystem::path> GetItemsPaths(const std::vector<std::string>& ids);
-      [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds);
-      [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIds(
-         std::string_view libraryName,
-         const std::vector<std::string>& tmdbIds);
+      [[nodiscard]] std::unordered_map<std::string, std::filesystem::path> GetItemsPaths(std::span<const std::string_view> ids);
+      [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIds(std::span<const std::string_view> tmdbIds);
+      [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIds(std::string_view libraryName, std::span<const std::string_view> tmdbIds);
 
       // Returns if the collection in the library is valid on this server
       [[nodiscard]] bool GetCollectionValid(std::string_view library, std::string_view collection);
@@ -94,9 +94,7 @@ namespace warp
    private:
       struct PlexApiImpl;
       friend struct PlexApiImpl;
-      [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIdsImpl(
-         const std::vector<std::string>& tmdbIds,
-         std::optional<std::string_view> libraryName);
+      [[nodiscard]] std::vector<PlexSearchResult> GetItemsByTmdbIdsImpl(std::span<const std::string_view> tmdbIds, std::optional<std::string_view> libraryName);
 
       std::unique_ptr<PlexApiImpl> pimpl_;
    };

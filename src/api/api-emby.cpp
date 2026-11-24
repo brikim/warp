@@ -106,7 +106,7 @@ namespace warp
 
       [[nodiscard]] std::optional<std::string> GetTracearrServerName() const;
       [[nodiscard]] std::string_view GetSearchTypeStr(EmbySearchType type);
-      [[nodiscard]] std::string CreateUpdateJson(const std::vector<EmbyMediaUpdate>& updates);
+      [[nodiscard]] std::string CreateUpdateJson(std::span<const EmbyMediaUpdate> updates);
    };
 
    EmbyApi::EmbyApiImpl::EmbyApiImpl(EmbyApi& p, std::string_view appName, std::string_view version, const ServerConfig& serverConfig)
@@ -251,7 +251,10 @@ namespace warp
       }
    }
 
-   std::optional<EmbyItem> EmbyApi::GetItem(EmbySearchType type, std::string_view name, const HttpParams& extraSearchArgs)
+   std::optional<EmbyItem> EmbyApi::GetItem(
+      EmbySearchType type,
+      std::string_view name,
+      std::span<const HttpParams::value_type> extraSearchArgs)
    {
       HttpParams params = {
          {RECURSIVE, "true"},
@@ -294,11 +297,11 @@ namespace warp
       return std::nullopt;
    }
 
-   std::vector<EmbyItem> EmbyApi::GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds)
+   std::vector<EmbyItem> EmbyApi::GetItemsByTmdbIds(std::span<const std::string_view> tmdbIds)
    {
       std::vector<std::string> providerIds;
       providerIds.reserve(tmdbIds.size());
-      std::unordered_set<std::string> seenTmdbIds;
+      std::unordered_set<std::string_view> seenTmdbIds;
       seenTmdbIds.reserve(tmdbIds.size());
       for (const auto& id : tmdbIds)
       {
@@ -411,7 +414,9 @@ namespace warp
 
    bool EmbyApi::GetPlaylistExists(std::string_view name)
    {
-      return GetItem(EmbySearchType::name, name, {{INCLUDE_ITEM_TYPES, "Playlist"}}).has_value();
+      static const HttpParams apiParams = {
+         {INCLUDE_ITEM_TYPES, "Playlist"}};
+      return GetItem(EmbySearchType::name, name, apiParams).has_value();
    }
 
    std::optional<EmbyPlaylist> EmbyApi::GetPlaylist(std::string_view name)
@@ -452,7 +457,7 @@ namespace warp
       return returnPlaylist;
    }
 
-   void EmbyApi::CreatePlaylist(std::string_view name, const std::vector<std::string>& itemIds)
+   void EmbyApi::CreatePlaylist(std::string_view name, std::span<const std::string_view> itemIds)
    {
       const auto apiPath = BuildApiParamsPath(API_PLAYLISTS, {{NAME, name}, {IDS, BuildCommaSeparatedList(itemIds)}, {MEDIA_TYPE, VIDEO}});
 
@@ -460,7 +465,7 @@ namespace warp
       IsHttpSuccess(__func__, res);
    }
 
-   bool EmbyApi::AddPlaylistItems(std::string_view playlistId, const std::vector<std::string>& addIds)
+   bool EmbyApi::AddPlaylistItems(std::string_view playlistId, std::span<const std::string_view> addIds)
    {
       const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items", API_PLAYLISTS, playlistId), {{IDS, BuildCommaSeparatedList(addIds)}});
 
@@ -468,7 +473,7 @@ namespace warp
       return IsHttpSuccess(__func__, res);
    }
 
-   bool EmbyApi::RemovePlaylistItems(std::string_view playlistId, const std::vector<std::string>& removeIds)
+   bool EmbyApi::RemovePlaylistItems(std::string_view playlistId, std::span<const std::string_view> removeIds)
    {
       const auto apiPath = BuildApiParamsPath(std::format("{}/{}/Items/Delete", API_PLAYLISTS, playlistId), {{ENTRY_IDS, BuildCommaSeparatedList(removeIds)}});
 
@@ -486,7 +491,9 @@ namespace warp
 
    bool EmbyApi::GetCollectionExists(std::string_view name)
    {
-      return GetItem(EmbySearchType::name, name, {{INCLUDE_ITEM_TYPES, BOX_SET}}).has_value();
+      static const HttpParams apiParams = {
+         {INCLUDE_ITEM_TYPES, BOX_SET}};
+      return GetItem(EmbySearchType::name, name, apiParams).has_value();
    }
 
    std::optional<EmbyCollection> EmbyApi::GetCollection(std::string_view name)
@@ -525,7 +532,7 @@ namespace warp
 
    bool EmbyApi::CreateCollection(
       std::string_view name,
-      const std::vector<std::string>& itemIds,
+      std::span<const std::string_view> itemIds,
       std::optional<std::string_view> parentId)
    {
       const auto ids = BuildCommaSeparatedList(itemIds);
@@ -539,7 +546,7 @@ namespace warp
       return IsHttpSuccess(__func__, res);
    }
 
-   bool EmbyApi::AddCollectionItems(std::string_view collectionId, const std::vector<std::string>& addIds)
+   bool EmbyApi::AddCollectionItems(std::string_view collectionId, std::span<const std::string_view> addIds)
    {
       const auto apiPath = BuildApiParamsPath(
          std::format("{}/{}/Items", API_COLLECTIONS, collectionId),
@@ -549,7 +556,7 @@ namespace warp
       return IsHttpSuccess(__func__, res);
    }
 
-   bool EmbyApi::RemoveCollectionItems(std::string_view collectionId, const std::vector<std::string>& removeIds)
+   bool EmbyApi::RemoveCollectionItems(std::string_view collectionId, std::span<const std::string_view> removeIds)
    {
       const auto apiPath = BuildApiParamsPath(
          std::format("{}/{}/Items/Delete", API_COLLECTIONS, collectionId),
@@ -642,7 +649,7 @@ namespace warp
       IsHttpSuccess(__func__, res);
    }
 
-   std::string EmbyApi::EmbyApiImpl::CreateUpdateJson(const std::vector<EmbyMediaUpdate>& updates)
+   std::string EmbyApi::EmbyApiImpl::CreateUpdateJson(std::span<const EmbyMediaUpdate> updates)
    {
       JsonEmbyUpdate jsonUpdates;
       for (const auto& update : updates)
@@ -668,7 +675,7 @@ namespace warp
       return glz::write_json(jsonUpdates).value_or("{}");
    }
 
-   void EmbyApi::SetMediaScan(const std::vector<EmbyMediaUpdate>& updates)
+   void EmbyApi::SetMediaScan(std::span<const EmbyMediaUpdate> updates)
    {
       const auto apiBody = pimpl_->CreateUpdateJson(updates);
       const auto apiPath = BuildApiPath("/Library/Media/Updated");

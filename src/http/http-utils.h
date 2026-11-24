@@ -5,6 +5,7 @@
 #include <glaze/json/write.hpp>
 #include <list>
 #include <numeric>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -21,6 +22,20 @@ namespace warp
       return std::accumulate(std::next(list.begin()), list.end(), list[0], [](std::string a, const std::string& b) {
          return std::move(a) + "," + b;
       });
+   }
+
+   inline std::string BuildCommaSeparatedList(std::span<const std::string_view> list)
+   {
+      if (list.empty())
+         return "";
+
+      std::string result(list.front());
+      for (const auto value : list.subspan(1))
+      {
+         result.push_back(',');
+         result.append(value);
+      }
+      return result;
    }
 
    inline std::string GetPercentEncoded(std::string_view src)

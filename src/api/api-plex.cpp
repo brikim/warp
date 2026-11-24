@@ -412,7 +412,7 @@ namespace warp
       return std::nullopt;
    }
 
-   std::unordered_map<std::string, std::filesystem::path> PlexApi::GetItemsPaths(const std::vector<std::string>& ids)
+   std::unordered_map<std::string, std::filesystem::path> PlexApi::GetItemsPaths(std::span<const std::string_view> ids)
    {
       std::unordered_map<std::string, std::filesystem::path> results;
       results.reserve(ids.size());
@@ -429,25 +429,25 @@ namespace warp
       return results;
    }
 
-   std::vector<PlexSearchResult> PlexApi::GetItemsByTmdbIds(const std::vector<std::string>& tmdbIds)
+   std::vector<PlexSearchResult> PlexApi::GetItemsByTmdbIds(std::span<const std::string_view> tmdbIds)
    {
       return GetItemsByTmdbIdsImpl(tmdbIds, std::nullopt);
    }
 
    std::vector<PlexSearchResult> PlexApi::GetItemsByTmdbIds(
       std::string_view libraryName,
-      const std::vector<std::string>& tmdbIds)
+      std::span<const std::string_view> tmdbIds)
    {
       return GetItemsByTmdbIdsImpl(tmdbIds, libraryName);
    }
 
    std::vector<PlexSearchResult> PlexApi::GetItemsByTmdbIdsImpl(
-      const std::vector<std::string>& tmdbIds,
+      std::span<const std::string_view> tmdbIds,
       std::optional<std::string_view> libraryName)
    {
-      std::vector<std::string> uniqueTmdbIds;
+      std::vector<std::string_view> uniqueTmdbIds;
       uniqueTmdbIds.reserve(tmdbIds.size());
-      std::unordered_set<std::string> seenTmdbIds;
+      std::unordered_set<std::string_view> seenTmdbIds;
       seenTmdbIds.reserve(tmdbIds.size());
       for (const auto& id : tmdbIds)
       {
@@ -475,7 +475,7 @@ namespace warp
 
       std::vector<PlexSearchResult> results;
       std::unordered_set<std::string> seenRatingKeys;
-      std::unordered_map<std::string, std::vector<PlexSearchResult>> resultsByTmdbId;
+      std::unordered_map<std::string, std::vector<PlexSearchResult>, StringHash, std::equal_to<>> resultsByTmdbId;
       resultsByTmdbId.reserve(uniqueTmdbIds.size());
 
       constexpr int32_t pageSize{250};
